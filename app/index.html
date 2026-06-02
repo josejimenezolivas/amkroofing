@@ -1276,7 +1276,7 @@
 
         const lbl = $("#map-label");
         lbl.classList.toggle("sim", source === "simulated");
-        lbl.childNodes[1].nodeValue = source === "solar" ? "GOOGLE SOLAR · ROOF SEGMENTS"
+        lbl.childNodes[1].nodeValue = source === "solar" ? "ROOF SEGMENTS"
           : source === "satellite" ? "LIVE SATELLITE · EST. OUTLINE"
             : "SIMULATED · IMAGERY OFFLINE";
 
@@ -1297,7 +1297,7 @@
         // stretches to match, so the overlay must render after, with a fresh invalidateSize().
         const e = computeEstimate(rng, source === "solar" ? { areaFt2: building.roofFt2, pitch: building.pitch } : null);
         $("#r-addr").textContent = label ? label.split(",").slice(0, 3).join(", ").trim() : addr;
-        $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${source === "solar" ? (building.segs.length + " roof segments · GOOGLE SOLAR") : source === "satellite" ? "LIVE IMAGERY" : "SIMULATED"}`;
+        $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${source === "solar" ? (building.segs.length + " roof segments") : source === "satellite" ? "LIVE IMAGERY" : "SIMULATED"}`;
         animNum($("#r-area"), e.area, "ft²", 0);
         animNum($("#r-squares"), e.squares, "sq", 1);
         animNum($("#r-pitch"), e.pitch, "°", 0);
