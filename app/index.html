@@ -587,6 +587,52 @@
       box-shadow: 0 0 8px var(--amber-bright)
     }
 
+    .map-legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 520;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .05em;
+      background: rgba(8, 14, 15, .82);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 9px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      color: #c7d2d4
+    }
+
+    .map-legend[hidden] {
+      display: none
+    }
+
+    .map-legend .row {
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .map-legend .sw {
+      width: 20px;
+      height: 13px;
+      flex: 0 0 auto;
+      border-radius: 2px
+    }
+
+    .map-legend .sw.amber {
+      border: 2px dashed var(--amber);
+      background: rgba(245, 166, 35, .12)
+    }
+
+    .map-legend .sw.teal {
+      border: 1.5px dashed var(--teal-bright);
+      background: rgba(94, 234, 212, .1)
+    }
+
     .info-side {
       padding: 40px
     }
@@ -922,6 +968,7 @@
           <div class="map-frame"></div>
           <svg class="map-outline" id="map-outline" preserveAspectRatio="none"></svg>
           <div class="map-label" id="map-label"><span class="d"></span>SCANNING…</div>
+          <div class="map-legend" id="map-legend" hidden></div>
         </div>
         <div class="info-side">
           <div class="lab">Estimated scope</div>
@@ -1232,6 +1279,19 @@
         lbl.childNodes[1].nodeValue = source === "solar" ? "GOOGLE SOLAR · ROOF SEGMENTS"
           : source === "satellite" ? "LIVE SATELLITE · EST. OUTLINE"
             : "SIMULATED · IMAGERY OFFLINE";
+
+        const legend = $("#map-legend");
+        if (source === "solar") {
+          legend.hidden = false;
+          legend.innerHTML =
+            `<div class="row"><span class="sw amber"></span>Building footprint</div>`
+            + `<div class="row"><span class="sw teal"></span>Roof segments (${building.segs.length})</div>`;
+        } else if (source === "satellite") {
+          legend.hidden = false;
+          legend.innerHTML = `<div class="row"><span class="sw amber"></span>Estimated roof outline</div>`;
+        } else {
+          legend.hidden = true;
+        }
 
         // Fill all text FIRST — this sets the info column's final height. The map column
         // stretches to match, so the overlay must render after, with a fresh invalidateSize().
