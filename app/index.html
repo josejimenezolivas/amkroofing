@@ -1052,7 +1052,7 @@
       async function buildMap(lat, lon) {
         const el = $("#map"); el.innerHTML = "";
         try {
-          const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, keyboard: false }).setView([lat, lon], 20);
+          const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, boxZoom: false, tap: false, keyboard: false }).setView([lat, lon], 20);
           (await satelliteLayer()).addTo(map);
           leafMap = map;
           map.invalidateSize();
