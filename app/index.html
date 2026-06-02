@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMK Roofing · Rooftop Compute Infrastructure</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/amk-logo-light.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+  <style>
+    :root {
+      --bg: #060a0b;
+      --bg-2: #0a1113;
+      --panel: rgba(255, 255, 255, .028);
+      --panel-2: rgba(255, 255, 255, .05);
+      --line: rgba(120, 200, 190, .14);
+      --line-strong: rgba(120, 200, 190, .30);
+      --amber: #f5a623;
+      --amber-bright: #ffc24b;
+      --teal: #2dd4bf;
+      --teal-bright: #5eead4;
+      --text: #e8f0f1;
+      --muted: #7d8d92;
+      --muted-2: #4a5a5e;
+      --display: "Sora", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --sans: "IBM Plex Sans", system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 30px
+    }
+
+    ::selection {
+      background: var(--teal);
+      color: #04201c
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      opacity: .04;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ---------- buttons ---------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: .06em;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 15px 24px;
+      transition: .22s;
+      white-space: nowrap;
+      text-transform: uppercase
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--amber), var(--amber-bright));
+      color: #1a0f00;
+      box-shadow: 0 0 26px rgba(245, 166, 35, .3)
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 38px rgba(245, 166, 35, .5)
+    }
+
+    .btn-teal {
+      background: linear-gradient(135deg, var(--teal), var(--teal-bright));
+      color: #04201c;
+      box-shadow: 0 0 26px rgba(45, 212, 191, .28)
+    }
+
+    .btn-teal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 38px rgba(45, 212, 191, .5)
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, .03);
+      color: var(--text);
+      border: 1px solid var(--line-strong);
+      backdrop-filter: blur(6px)
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--teal);
+      color: var(--teal-bright)
+    }
+
+    /* ---------- header ---------- */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 80;
+      transition: .3s;
+      background: linear-gradient(180deg, rgba(6, 10, 11, .75), transparent)
+    }
+
+    header.solid {
+      background: rgba(6, 10, 11, .92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .logo-img {
+      height: 44px;
+      width: auto;
+      display: block;
+      filter: drop-shadow(0 0 10px rgba(45, 212, 191, .18))
+    }
+
+    .logo-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--line-strong);
+      flex: 0 0 auto
+    }
+
+    .logo .tag {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      line-height: 1.55;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-transform: uppercase
+    }
+
+    .nav-links a:hover {
+      color: var(--teal-bright)
+    }
+
+    .nav .btn {
+      padding: 12px 20px
+    }
+
+    /* ---------- hero ---------- */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden
+    }
+
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: saturate(1.05) contrast(1.04) brightness(.78)
+    }
+
+    .hero-tint {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 30% 40%, rgba(6, 10, 11, .35), transparent 55%),
+        linear-gradient(180deg, rgba(6, 10, 11, .55) 0%, rgba(6, 10, 11, .35) 40%, rgba(6, 10, 11, .92) 100%),
+        linear-gradient(90deg, rgba(6, 10, 11, .78) 0%, transparent 65%)
+    }
+
+    .hero-scan {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .5;
+      background-image: repeating-linear-gradient(0deg, transparent 0 3px, rgba(45, 212, 191, .025) 3px 4px)
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding: 120px 0 60px
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--teal-bright);
+      border: 1px solid var(--line);
+      background: rgba(45, 212, 191, .05);
+      padding: 8px 15px;
+      border-radius: 30px;
+      margin-bottom: 26px
+    }
+
+    .eyebrow .d {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal-bright);
+      box-shadow: 0 0 8px var(--teal-bright);
+      animation: blink 2s infinite
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    h1.hero-h {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(40px, 6.6vw, 86px);
+      line-height: .98;
+      letter-spacing: -.025em;
+      max-width: 14ch
+    }
+
+    h1.hero-h em {
+      font-style: normal;
+      background: linear-gradient(120deg, var(--amber-bright), var(--teal-bright));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: #b9c6c8;
+      margin-top: 26px;
+      max-width: 540px;
+      font-weight: 300
+    }
+
+    .hero-sub b {
+      color: var(--text);
+      font-weight: 500
+    }
+
+    .estimate-card {
+      margin-top: 36px;
+      width: min(640px, 100%);
+      background: rgba(8, 14, 15, .66);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .5)
+    }
+
+    .ec-h {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--teal-bright);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .addr-row {
+      display: flex;
+      gap: 10px
+    }
+
+    .addr-field {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 0 16px;
+      transition: .2s
+    }
+
+    .addr-field:focus-within {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, .12)
+    }
+
+    .addr-field svg {
+      color: var(--muted);
+      flex: 0 0 auto
+    }
+
+    .addr-field input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 16px 0
+    }
+
+    .addr-field input::placeholder {
+      color: var(--muted)
+    }
+
+    .ec-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .04em;
+      color: var(--muted);
+      margin-top: 13px
+    }
+
+    .ec-note b {
+      color: var(--teal-bright);
+      cursor: pointer;
+      border-bottom: 1px dashed var(--line-strong)
+    }
+
+    /* ---------- metrics strip ---------- */
+    .metrics {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--bg-2)
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .metric {
+      padding: 34px 26px;
+      border-right: 1px solid var(--line)
+    }
+
+    .metric:last-child {
+      border-right: none
+    }
+
+    .metric .n {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 40px;
+      letter-spacing: -.02em;
+      line-height: 1
+    }
+
+    .metric .n.amber {
+      color: var(--amber-bright)
+    }
+
+    .metric .n.teal {
+      color: var(--teal-bright)
+    }
+
+    .metric .n small {
+      font-size: 18px;
+      color: var(--muted);
+      font-weight: 500
+    }
+
+    .metric .l {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 10px
+    }
+
+    /* ---------- section heads ---------- */
+    .sec {
+      padding: 108px 0
+    }
+
+    .sec-head {
+      max-width: 680px;
+      margin-bottom: 56px
+    }
+
+    .sec-head.center {
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center
+    }
+
+    .sec-eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 18px
+    }
+
+    .sec-eyebrow.teal {
+      color: var(--teal-bright)
+    }
+
+    .sec-head h2 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(30px, 4.2vw, 50px);
+      line-height: 1.05;
+      letter-spacing: -.02em
+    }
+
+    .sec-head p {
+      color: #9fadb0;
+      font-size: 18px;
+      margin-top: 18px;
+      font-weight: 300
+    }
+
+    /* ---------- pipeline ---------- */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative
+    }
+
+    .pnode {
+      position: relative;
+      padding: 30px 26px;
+      border: 1px solid var(--line);
+      background: var(--panel)
+    }
+
+    .pnode:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -9px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      transform: translateY(-50%) rotate(45deg);
+      background: var(--bg);
+      border-right: 1px solid var(--line-strong);
+      border-top: 1px solid var(--line-strong);
+      z-index: 3
+    }
+
+    .pnode .pn-ic {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px
+    }
+
+    .pnode.energy .pn-ic {
+      background: rgba(245, 166, 35, .12);
+      color: var(--amber-bright)
+    }
+
+    .pnode.compute .pn-ic {
+      background: rgba(45, 212, 191, .12);
+      color: var(--teal-bright)
+    }
+
+    .pnode .pn-step {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .18em;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    .pnode h3 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 19px;
+      margin-bottom: 8px
+    }
+
+    .pnode p {
+      font-size: 14px;
+      color: #94a3a6
+    }
+
+    /* ---------- estimate result ---------- */
+    .result {
+      padding: 0;
+      display: none
+    }
+
+    .result.show {
+      display: block
+    }
+
+    .result-inner {
+      padding: 108px 0;
+      animation: fade .6s ease
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(18px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .result-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .45)
+    }
+
+    .map-side {
+      position: relative;
+      min-height: 440px;
+      background: #0d1518
+    }
+
+    #map {
+      position: absolute;
+      inset: 0
+    }
+
+    .leaflet-container {
+      background: #0d1518
+    }
+
+    .map-frame {
+      position: absolute;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px var(--line-strong)
+    }
+
+    .map-outline {
+      position: absolute;
+      inset: 0;
+      z-index: 510;
+      pointer-events: none
+    }
+
+    .map-label {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 520;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      background: rgba(8, 14, 15, .82);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 8px 13px;
+      color: var(--teal-bright);
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .map-label .d {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal-bright);
+      box-shadow: 0 0 8px var(--teal-bright)
+    }
+
+    .map-label.sim {
+      color: var(--amber-bright)
+    }
+
+    .map-label.sim .d {
+      background: var(--amber-bright);
+      box-shadow: 0 0 8px var(--amber-bright)
+    }
+
+    .info-side {
+      padding: 40px
+    }
+
+    .info-side .lab {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--teal-bright)
+    }
+
+    .info-side .addr {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 23px;
+      margin: 10px 0 6px;
+      line-height: 1.2
+    }
+
+    .info-side .coord {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 26px
+    }
+
+    .est-rows {
+      border-top: 1px solid var(--line)
+    }
+
+    .est-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .est-row .k {
+      font-size: 14px;
+      color: #9fadb0;
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .est-row .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px
+    }
+
+    .est-row .dot.a {
+      background: var(--amber-bright)
+    }
+
+    .est-row .dot.t {
+      background: var(--teal-bright)
+    }
+
+    .est-row .v {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 23px
+    }
+
+    .est-row .v small {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+      font-family: var(--mono);
+      margin-left: 3px
+    }
+
+    .est-row .v.amber {
+      color: var(--amber-bright)
+    }
+
+    .est-row .v.teal {
+      color: var(--teal-bright)
+    }
+
+    .est-disclaim {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--muted);
+      margin: 20px 0 24px;
+      line-height: 1.6
+    }
+
+    .lead-row {
+      display: flex;
+      gap: 10px
+    }
+
+    .lead-row input {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .04);
+      border-radius: 5px;
+      padding: 14px 15px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      outline: none
+    }
+
+    .lead-row input:focus {
+      border-color: var(--teal)
+    }
+
+    .lead-btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 10px
+    }
+
+    /* ---------- why / split ---------- */
+    .why {
+      background: var(--bg-2);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center
+    }
+
+    .why-points {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 10px
+    }
+
+    .wp {
+      display: flex;
+      gap: 16px
+    }
+
+    .wp .wp-ic {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      border-radius: 9px;
+      background: rgba(45, 212, 191, .1);
+      color: var(--teal-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .wp h4 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 17px;
+      margin-bottom: 5px
+    }
+
+    .wp p {
+      font-size: 14.5px;
+      color: #94a3a6
+    }
+
+    .why-visual {
+      position: relative;
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, rgba(45, 212, 191, .07), transparent 70%)
+    }
+
+    .why-visual svg {
+      width: 100%;
+      height: 100%
+    }
+
+    /* ---------- biotech band ---------- */
+    .biotech {
+      position: relative
+    }
+
+    .bt-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-top: 8px
+    }
+
+    .bt-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 10px;
+      padding: 28px
+    }
+
+    .bt-card .bc-tag {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 14px
+    }
+
+    .bt-card h3 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 19px;
+      margin-bottom: 9px
+    }
+
+    .bt-card p {
+      font-size: 14.5px;
+      color: #94a3a6
+    }
+
+    /* ---------- CTA ---------- */
+    .cta-box {
+      background: linear-gradient(135deg, rgba(245, 166, 35, .12), rgba(45, 212, 191, .1));
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      padding: 64px 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden
+    }
+
+    .cta-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 40px, rgba(255, 255, 255, .012) 40px 41px);
+      pointer-events: none
+    }
+
+    .cta-box h2 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -.02em;
+      position: relative
+    }
+
+    .cta-box p {
+      font-size: 18px;
+      color: #aebcbe;
+      margin: 16px auto 30px;
+      max-width: 560px;
+      font-weight: 300;
+      position: relative
+    }
+
+    .cta-box .btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative
+    }
+
+    /* ---------- footer ---------- */
+    footer {
+      background: #04080a;
+      border-top: 1px solid var(--line);
+      padding: 56px 0 30px;
+      font-size: 14px;
+      color: var(--muted)
+    }
+
+    .foot-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 30px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .foot-grid h4 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 16px
+    }
+
+    .foot-grid a {
+      display: block;
+      padding: 5px 0;
+      color: var(--muted)
+    }
+
+    .foot-grid a:hover {
+      color: var(--teal-bright)
+    }
+
+    .foot-logo .foot-logo-img {
+      height: 62px;
+      width: auto;
+      display: block;
+      margin-bottom: 14px
+    }
+
+    .foot-logo p {
+      margin-top: 12px;
+      max-width: 300px;
+      font-weight: 300;
+      color: var(--muted)
+    }
+
+    .foot-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 22px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .06em;
+      color: var(--muted-2)
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .7s ease, transform .7s ease
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: none
+    }
+
+    @media(max-width:920px) {
+      .nav-links {
+        display: none
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .metric:nth-child(2) {
+        border-right: none
+      }
+
+      .metric:nth-child(1),
+      .metric:nth-child(2) {
+        border-bottom: 1px solid var(--line)
+      }
+
+      .pipeline {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .pnode:not(:last-child)::after {
+        display: none
+      }
+
+      .result-card {
+        grid-template-columns: 1fr
+      }
+
+      .split {
+        grid-template-columns: 1fr;
+        gap: 40px
+      }
+
+      .bt-grid {
+        grid-template-columns: 1fr
+      }
+
+      .foot-grid {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media(max-width:560px) {
+
+      .addr-row,
+      .lead-row {
+        flex-direction: column
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr
+      }
+
+      .metric {
+        border-right: none;
+        border-bottom: 1px solid var(--line)
+      }
+
+      .pipeline {
+        grid-template-columns: 1fr
+      }
+
+      .nav .btn {
+        display: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <!-- ============ HEADER ============ -->
+  <header id="hdr">
+    <div class="wrap nav">
+      <a class="logo" href="#estimate">
+        <img class="logo-img" src="assets/amk-logo-light.png" alt="AMK Roofing" />
+        <span class="logo-divider"></span>
+        <span class="tag">Rooftop Compute<br>Infrastructure</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#how">How It Works</a>
+        <a href="#why">Why Distributed</a>
+        <a href="#biotech">Biotech</a>
+        <a href="#estimate">Estimate</a>
+      </nav>
+      <a class="btn btn-teal" href="#estimate"
+        onclick="setTimeout(()=>document.getElementById('addr-input').focus(),50)">Deploy a roof</a>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="estimate">
+    <video class="hero-video" autoplay muted loop playsinline poster="">
+      <source src="assets/roof-aerial.mp4" type="video/mp4">
+    </video>
+    <div class="hero-tint"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-inner">
+      <div class="wrap">
+        <span class="eyebrow"><span class="d"></span>Solar roofing × distributed compute</span>
+        <h1 class="hero-h">Every roof is a <em>power plant.</em></h1>
+        <p class="hero-sub">AMK Roofing installs solar-integrated roofing that powers <b>distributed GPU clusters</b> —
+          clean, on-site compute feeding the biotech labs racing to design tomorrow's medicine.</p>
+
+        <div class="estimate-card">
+          <div class="ec-h">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="12" cy="9" r="2.2" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+            Estimate your rooftop's compute potential
+          </div>
+          <div class="addr-row">
+            <label class="addr-field">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M3 11 12 4l9 7M5 10v9h14v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              <input id="addr-input" type="text" autocomplete="off" placeholder="Enter a rooftop address" />
+            </label>
+            <button class="btn btn-primary" id="estimate-go">Scan rooftop</button>
+          </div>
+          <div class="ec-note">Satellite-measured roof area → solar capacity → GPU-hours. Try <b id="demo-addr">1 Apple
+              Park Way, Cupertino, CA</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ METRICS ============ -->
+  <section class="metrics">
+    <div class="wrap metrics-grid">
+      <div class="metric">
+        <div class="n amber" data-count="12.4" data-suffix=" MW">0</div>
+        <div class="l">Solar roofing deployed</div>
+      </div>
+      <div class="metric">
+        <div class="n teal" data-count="1850" data-suffix="">0</div>
+        <div class="l">GPU nodes powered</div>
+      </div>
+      <div class="metric">
+        <div class="n teal" data-count="47" data-suffix="">0</div>
+        <div class="l">Biotech labs served</div>
+      </div>
+      <div class="metric">
+        <div class="n amber" data-count="9200" data-suffix=" t">0</div>
+        <div class="l">CO₂ avoided / year</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ESTIMATE RESULT ============ -->
+  <section class="result" id="result">
+    <div class="wrap result-inner">
+      <div class="sec-head">
+        <div class="sec-eyebrow teal">Rooftop assessment</div>
+        <h2>Your roof's clean-compute capacity</h2>
+      </div>
+      <div class="result-card">
+        <div class="map-side">
+          <div id="map"></div>
+          <div class="map-frame"></div>
+          <svg class="map-outline" id="map-outline" preserveAspectRatio="none"></svg>
+          <div class="map-label" id="map-label"><span class="d"></span>SCANNING…</div>
+        </div>
+        <div class="info-side">
+          <div class="lab">Projected output</div>
+          <div class="addr" id="r-addr">—</div>
+          <div class="coord" id="r-coord">—</div>
+          <div class="est-rows">
+            <div class="est-row"><span class="k"><span class="dot a"></span>Usable roof area</span><span class="v"
+                id="r-area">—<small>ft²</small></span></div>
+            <div class="est-row"><span class="k"><span class="dot a"></span>Solar capacity</span><span class="v amber"
+                id="r-kw">—<small>kW</small></span></div>
+            <div class="est-row"><span class="k"><span class="dot a"></span>Clean energy / yr</span><span
+                class="v amber" id="r-mwh">—<small>MWh</small></span></div>
+            <div class="est-row"><span class="k"><span class="dot t"></span>GPUs powered (cont.)</span><span
+                class="v teal" id="r-gpu">—<small>×H100</small></span></div>
+            <div class="est-row"><span class="k"><span class="dot t"></span>Compute / yr</span><span class="v teal"
+                id="r-gpuh">—<small>GPU-hrs</small></span></div>
+          </div>
+          <p class="est-disclaim">// Projection from satellite-measured area, ~19 W/ft² module density, local solar
+            yield, and 700 W H100-class draw. Final figures confirmed in an on-site engineering survey.</p>
+          <div class="lead-row">
+            <input id="lead-name" type="text" placeholder="Name / lab" />
+            <input id="lead-phone" type="text" placeholder="Email or phone" />
+          </div>
+          <button class="btn btn-teal lead-btn" id="lead-btn">Request deployment plan</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW / PIPELINE ============ -->
+  <section class="sec" id="how">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <div class="sec-eyebrow">The pipeline</div>
+        <h2>From shingle to sequence</h2>
+        <p>We turn idle roof area into a vertically integrated energy-to-compute stack — generation and processing
+          living in the same square footage.</p>
+      </div>
+      <div class="pipeline reveal">
+        <div class="pnode energy">
+          <div class="pn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M3 11 12 4l9 7M5 10v9h14v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg></div>
+          <div class="pn-step">STEP 01</div>
+          <h3>Solar roofing</h3>
+          <p>We re-skin the roof with high-density solar roofing — weatherproof, building-integrated, engineered for
+            decades.</p>
+        </div>
+        <div class="pnode energy">
+          <div class="pn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z" stroke="currentColor" stroke-width="1.8"
+                stroke-linejoin="round" />
+            </svg></div>
+          <div class="pn-step">STEP 02</div>
+          <h3>Clean generation</h3>
+          <p>Sunlight becomes DC power on-site — no transmission losses, no grid queue, no fossil baseline.</p>
+        </div>
+        <div class="pnode compute">
+          <div class="pn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8" />
+              <rect x="9" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.8" />
+              <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" />
+            </svg></div>
+          <div class="pn-step">STEP 03</div>
+          <h3>Edge GPU cluster</h3>
+          <p>Power feeds a containerized GPU node beneath the roofline — one tile in a distributed, solar-native compute
+            fabric.</p>
+        </div>
+        <div class="pnode compute">
+          <div class="pn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M7 8a5 5 0 0 1 10 0v1a5 5 0 0 1-10 0V8Z" stroke="currentColor" stroke-width="1.7" />
+              <path d="M12 14v3M9 20h6M5 6 3 4M19 6l2-2" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" />
+            </svg></div>
+          <div class="pn-step">STEP 04</div>
+          <h3>Biotech workloads</h3>
+          <p>Protein folding, genomic pipelines, and molecular simulation run on the clean compute — discovery, powered
+            by daylight.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY DISTRIBUTED ============ -->
+  <section class="sec why" id="why">
+    <div class="wrap split">
+      <div class="reveal">
+        <div class="sec-eyebrow teal">Why distributed + solar</div>
+        <h2
+          style="font-family:var(--display);font-weight:700;font-size:clamp(28px,3.8vw,44px);letter-spacing:-.02em;line-height:1.06">
+          Compute where the sun already falls.</h2>
+        <p style="color:#9fadb0;font-size:17px;margin-top:16px;font-weight:300">Hyperscale data centers strain grids and
+          chase water for cooling. We invert the model: thousands of small, solar-skinned roofs become a distributed
+          cluster — generating power exactly where it's consumed.</p>
+        <div class="why-points">
+          <div class="wp">
+            <div class="wp-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z" stroke="currentColor" stroke-width="1.8"
+                  stroke-linejoin="round" />
+              </svg></div>
+            <div>
+              <h4>Zero transmission loss</h4>
+              <p>Generation and compute sit centimeters apart — power never touches the grid.</p>
+            </div>
+          </div>
+          <div class="wp">
+            <div class="wp-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+              </svg></div>
+            <div>
+              <h4>Grid-friendly by design</h4>
+              <p>No interconnection queue, no new substations — capacity scales one roof at a time.</p>
+            </div>
+          </div>
+          <div class="wp">
+            <div class="wp-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22a8 8 0 0 0 8-8c0-4-3-7-8-12C7 7 4 10 4 14a8 8 0 0 0 8 8Z" stroke="currentColor"
+                  stroke-width="1.7" stroke-linejoin="round" />
+              </svg></div>
+            <div>
+              <h4>Passive thermal advantage</h4>
+              <p>Open rooftop airflow cuts the cooling load that forces inland data centers to burn water and watts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="why-visual reveal">
+        <svg viewBox="0 0 400 400" fill="none">
+          <defs>
+            <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#2dd4bf" stop-opacity=".25" />
+              <stop offset="1" stop-color="#2dd4bf" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="200" cy="200" r="160" fill="url(#glow)" />
+          <circle cx="200" cy="200" r="150" stroke="#1e3b38" stroke-width="1" />
+          <circle cx="200" cy="200" r="100" stroke="#1e3b38" stroke-width="1" />
+          <circle cx="200" cy="200" r="22" fill="#0a1113" stroke="#5eead4" stroke-width="1.5" />
+          <text x="200" y="204" fill="#5eead4" font-family="IBM Plex Mono" font-size="10"
+            text-anchor="middle">HUB</text>
+          <g id="nodes"></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BIOTECH ============ -->
+  <section class="sec biotech" id="biotech">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-eyebrow">Workloads we power</div>
+        <h2>Daylight, turned into discovery</h2>
+        <p>Our clean compute is built for the most demanding, time-critical science.</p>
+      </div>
+      <div class="bt-grid reveal">
+        <div class="bt-card">
+          <div class="bc-tag">Structural biology</div>
+          <h3>Protein folding</h3>
+          <p>Run folding and docking models at scale to map how candidate molecules bind — the bottleneck in modern drug
+            design.</p>
+        </div>
+        <div class="bt-card">
+          <div class="bc-tag">Genomics</div>
+          <h3>Sequence pipelines</h3>
+          <p>Align, variant-call, and analyze whole genomes for population studies and personalized medicine, on tap.
+          </p>
+        </div>
+        <div class="bt-card">
+          <div class="bc-tag">Computational chemistry</div>
+          <h3>Molecular simulation</h3>
+          <p>Simulate molecular dynamics and reaction pathways that would take a wet lab months to explore physically.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="cta-box reveal">
+        <h2>Put your roof to work.</h2>
+        <p>Whether you own building stock or run a lab that needs clean compute, let's map what your rooftops can
+          generate.</p>
+        <div class="btns">
+          <a class="btn btn-primary" href="#estimate"
+            onclick="setTimeout(()=>document.getElementById('addr-input').focus(),50)">Scan a rooftop</a>
+          <a class="btn btn-ghost" href="mailto:deploy@amkroofing.com">Talk to engineering</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-logo">
+          <img class="foot-logo-img" src="assets/amk-logo-light.png" alt="AMK Roofing" />
+          <p>Solar-integrated roofing that powers a distributed, biotech-grade GPU fabric. Generation and compute, in
+            the same square foot.</p>
+        </div>
+        <div>
+          <h4>Platform</h4><a href="#how">How It Works</a><a href="#why">Why Distributed</a><a href="#biotech">Biotech
+            Workloads</a><a href="#estimate">Rooftop Estimate</a>
+        </div>
+        <div>
+          <h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Engineering</a><a
+            href="#">Sustainability</a>
+        </div>
+        <div>
+          <h4>Contact</h4><a href="mailto:deploy@amkroofing.com">deploy@amkroofing.com</a><a href="tel:5550000000">(555)
+            000-0000</a><a href="#">Serving [Region]</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© <span id="year"></span> AMK ROOFING · LICENSED &amp; INSURED</span>
+        <span>SOLAR · DISTRIBUTED COMPUTE · BIOTECH</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const $ = s => document.querySelector(s);
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // header solidify on scroll
+      const hdr = $("#hdr");
+      addEventListener("scroll", () => { hdr.classList.toggle("solid", scrollY > 40); });
+
+      // reveal on scroll
+      const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .18 });
+      document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+      // animated metric counters
+      function animateCount(el) {
+        const target = parseFloat(el.dataset.count), suffix = el.dataset.suffix || "", dec = (target % 1 !== 0) ? 1 : 0;
+        let i = 0; const steps = 42;
+        const t = setInterval(() => {
+          i++; let v = target * (i / steps);
+          el.textContent = (dec ? v.toFixed(1) : Math.round(v).toLocaleString()) + (suffix ? `<small>${suffix}</small>` : "");
+          el.innerHTML = (dec ? v.toFixed(1) : Math.round(v).toLocaleString()) + (suffix ? `<small>${suffix}</small>` : "");
+          if (i >= steps) { el.innerHTML = (dec ? target.toFixed(1) : Math.round(target).toLocaleString()) + (suffix ? `<small>${suffix}</small>` : ""); clearInterval(t); }
+        }, 28);
+      }
+      const mio = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { animateCount(e.target); mio.unobserve(e.target); } }), { threshold: .5 });
+      document.querySelectorAll(".metric .n").forEach(el => mio.observe(el));
+
+      // distributed-node visual
+      (function () {
+        const g = document.getElementById("nodes"); if (!g) return;
+        let html = "";
+        for (let i = 0; i < 14; i++) {
+          const a = (i / 14) * Math.PI * 2, r = 100 + (i % 3) * 25, x = 200 + Math.cos(a) * r, y = 200 + Math.sin(a) * r;
+          html += `<line x1="200" y1="200" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#1e3b38" stroke-width="1"/>`;
+          html += `<rect x="${(x - 7).toFixed(1)}" y="${(y - 7).toFixed(1)}" width="14" height="14" rx="2" fill="#0a1113" stroke="${i % 3 === 0 ? '#ffc24b' : '#5eead4'}" stroke-width="1.4"/>`;
+        }
+        g.innerHTML = html;
+      })();
+
+      /* ---------- estimate engine ---------- */
+      function seedFrom(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
+      let leafMap = null;
+
+      async function geocode(addr) {
+        const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(addr);
+        const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 5000);
+        try {
+          const r = await fetch(url, { headers: { "Accept": "application/json" }, signal: ctrl.signal }); clearTimeout(to);
+          const j = await r.json(); if (j && j.length) return { lat: parseFloat(j[0].lat), lon: parseFloat(j[0].lon), label: j[0].display_name };
+        }
+        catch (e) { clearTimeout(to); } return null;
+      }
+      function buildMap(lat, lon) {
+        return new Promise(resolve => {
+          const el = $("#map"); el.innerHTML = "";
+          try {
+            const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, keyboard: false }).setView([lat, lon], 20);
+            const layer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 21 });
+            let ok = false; layer.on("tileload", () => { ok = true; }); layer.on("tileerror", () => { }); layer.addTo(map); leafMap = map;
+            setTimeout(() => map.invalidateSize(), 60); setTimeout(() => resolve(ok), 2400);
+          } catch (e) { resolve(false); }
+        });
+      }
+      function drawFallback(rng) {
+        const el = $("#map"); el.innerHTML = "";
+        const cv = document.createElement("canvas"); cv.width = el.clientWidth || 560; cv.height = el.clientHeight || 440;
+        cv.style.cssText = "width:100%;height:100%;display:block"; el.appendChild(cv);
+        const ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#15211f"); g.addColorStop(1, "#0d1815"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        for (let i = 0; i < 4200; i++) { ctx.fillStyle = `rgba(${30 + rng() * 40 | 0},${60 + rng() * 40 | 0},${50 + rng() * 30 | 0},.5)`; ctx.fillRect(rng() * W, rng() * H, 2, 2); }
+        ctx.strokeStyle = "#22302e"; ctx.lineWidth = 22; ctx.beginPath(); ctx.moveTo(-10, H * .85); ctx.lineTo(W + 10, H * .8); ctx.stroke();
+        const cx = W / 2, cy = H / 2, hw = Math.min(W, H) * .2, hh = Math.min(W, H) * .15; ctx.save(); ctx.translate(cx, cy); ctx.rotate((rng() - .5) * .3);
+        ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fillRect(-hw + 6, -hh + 8, hw * 2, hh * 2);
+        const rg = ctx.createLinearGradient(-hw, -hh, hw, hh); rg.addColorStop(0, "#3a4744"); rg.addColorStop(1, "#2a3633"); ctx.fillStyle = rg; ctx.fillRect(-hw, -hh, hw * 2, hh * 2);
+        ctx.restore();
+      }
+      function drawOutline(rng) {
+        const svg = $("#map-outline"); const W = svg.clientWidth || 560, H = svg.clientHeight || 440;
+        svg.setAttribute("viewBox", `0 0 ${W} ${H}`); const cx = W / 2, cy = H / 2, sx = Math.min(W, H) * .2, sy = Math.min(W, H) * .15, rot = (rng() - .5) * .4;
+        const c = Math.cos(rot), s = Math.sin(rot), P = (x, y) => [cx + (x * c - y * s), cy + (x * s + y * c)];
+        const pts = [[-sx, -sy], [sx, -sy], [sx, sy], [-sx, sy]].map(p => P(p[0], p[1])); const str = pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+        svg.innerHTML = `<polygon points="${str}" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="9 6" style="filter:drop-shadow(0 0 6px rgba(245,166,35,.6))"><animate attributeName="stroke-dashoffset" from="0" to="30" dur="1.2s" repeatCount="indefinite"/></polygon>
+      ${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#0a1113" stroke="#f5a623" stroke-width="2"/>`).join("")}
+      <text x="${cx}" y="${(cy - sy - 12).toFixed(1)}" fill="#f5a623" font-family="IBM Plex Mono" font-size="11" text-anchor="middle" letter-spacing="2">SOLAR ROOF AREA</text>`;
+      }
+
+      function computeEstimate(rng) {
+        const footprint = Math.round(1500 + rng() * 6500);          // ft²
+        const usable = footprint * 0.62;                            // setbacks, obstructions
+        const kw = usable * 19 / 1000;                                // ~19 W/ft² module density
+        const yield_ = 1300 + rng() * 450;                            // kWh per kW-yr (location)
+        const kwh = kw * yield_;                                    // annual generation
+        const mwh = kwh / 1000;
+        const avgPowerKw = kwh / 8760;                              // average continuous power
+        const gpu = avgPowerKw / 0.7;                               // H100-class continuous draw
+        const gpuHrs = kwh / 0.7;                                   // GPU-hours / yr
+        return { footprint: Math.round(usable), kw, mwh, gpu, gpuHrs };
+      }
+      function animNum(el, target, unit, dec) {
+        let i = 0; const steps = 30, small = unit ? `<small>${unit}</small>` : "";
+        const t = setInterval(() => {
+          i++; const v = target * (i / steps);
+          el.innerHTML = (dec ? v.toFixed(dec) : Math.round(v).toLocaleString()) + small;
+          if (i >= steps) { el.innerHTML = (dec ? target.toFixed(dec) : Math.round(target).toLocaleString()) + small; clearInterval(t); }
+        }, 24);
+      }
+
+      async function run(rawAddr) {
+        const addr = (rawAddr || "").trim(); if (!addr) { $("#addr-input").focus(); return; }
+        const rng = seedFrom(addr.toLowerCase());
+        const btn = $("#estimate-go"); const orig = btn.textContent; btn.textContent = "Scanning…"; btn.disabled = true;
+        $("#result").classList.add("show");
+
+        const geo = await geocode(addr); let lat, lon, label, live = false;
+        if (geo) { lat = geo.lat; lon = geo.lon; label = geo.label; live = await buildMap(lat, lon); }
+        if (!geo) { lat = 37.3349 + (rng() - .5) * 0.2; lon = -122.009 + (rng() - .5) * 0.2; label = addr; }
+        if (!live) { drawFallback(rng); }
+
+        const lbl = $("#map-label");
+        if (live) { lbl.classList.remove("sim"); lbl.childNodes[1].nodeValue = "LIVE SATELLITE"; }
+        else { lbl.classList.add("sim"); lbl.childNodes[1].nodeValue = "SIMULATED · IMAGERY OFFLINE"; }
+
+        drawOutline(rng);
+        const e = computeEstimate(rng);
+        $("#r-addr").textContent = label ? label.split(",").slice(0, 3).join(", ").trim() : addr;
+        $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${live ? "LIVE IMAGERY" : "SIMULATED"}`;
+        animNum($("#r-area"), e.footprint, "ft²", 0);
+        animNum($("#r-kw"), e.kw, "kW", 1);
+        animNum($("#r-mwh"), e.mwh, "MWh", 1);
+        animNum($("#r-gpu"), e.gpu, "×H100", 0);
+        animNum($("#r-gpuh"), Math.round(e.gpuHrs), "GPU-hrs", 0);
+
+        btn.textContent = orig; btn.disabled = false;
+        $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      $("#estimate-go").addEventListener("click", () => run($("#addr-input").value));
+      $("#addr-input").addEventListener("keydown", e => { if (e.key === "Enter") run($("#addr-input").value); });
+      $("#demo-addr").addEventListener("click", () => { $("#addr-input").value = $("#demo-addr").textContent; run($("#demo-addr").textContent); });
+      $("#lead-btn").addEventListener("click", () => { const b = $("#lead-btn"); const o = b.textContent; b.textContent = "Received — engineering will reach out ✓"; b.disabled = true; setTimeout(() => { b.textContent = o; b.disabled = false; }, 3200); });
+      addEventListener("resize", () => { if (leafMap) leafMap.invalidateSize(); });
+    })();
+  </script>
+</body>
+
+</html>
