@@ -1,0 +1,3 @@
+# Local runtime config holding the Google Maps API key — never commit the real key
+app/scripts/config.js
+config.js

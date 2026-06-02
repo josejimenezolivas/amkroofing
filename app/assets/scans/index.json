@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "1-apple-park-way-cupertino-ca",
+    "address": "1 Apple Park Way, Cupertino, CA",
+    "displayName": "1, Apple Park Way, Cupertino, Santa Clara County, California, 94087, United States",
+    "roofAreaFt2": 178795,
+    "segmentCount": 12,
+    "fetchedAt": "2026-06-02T13:10:07.540Z"
+  },
+  {
+    "slug": "1600-amphitheatre-parkway-mountain-view-ca",
+    "address": "1600 Amphitheatre Parkway, Mountain View, CA",
+    "displayName": "Google Building 41, 1600, Amphitheatre Parkway, Mountain View, Santa Clara County, California, 94043, United States",
+    "roofAreaFt2": 34895,
+    "segmentCount": 91,
+    "fetchedAt": "2026-06-02T13:10:09.178Z"
+  },
+  {
+    "slug": "184-talmadge-ave",
+    "address": "184 talmadge ave",
+    "displayName": "184, Talmadge Avenue, Alum Rock, San Jose, Santa Clara County, California, 95127, United States",
+    "roofAreaFt2": 1943,
+    "segmentCount": 7,
+    "fetchedAt": "2026-06-02T13:30:50.411Z"
+  }
+]

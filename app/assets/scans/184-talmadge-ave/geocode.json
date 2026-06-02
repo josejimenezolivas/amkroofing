@@ -1,0 +1,21 @@
+{
+  "place_id": 322191216,
+  "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+  "osm_type": "way",
+  "osm_id": 779219489,
+  "lat": "37.3699635",
+  "lon": "-121.8299702",
+  "class": "building",
+  "type": "house",
+  "place_rank": 30,
+  "importance": 0.00004417715724417513,
+  "addresstype": "building",
+  "name": "",
+  "display_name": "184, Talmadge Avenue, Alum Rock, San Jose, Santa Clara County, California, 95127, United States",
+  "boundingbox": [
+    "37.3698701",
+    "37.3700413",
+    "-121.8300681",
+    "-121.8298717"
+  ]
+}
