@@ -776,6 +776,23 @@
       border-color: var(--teal)
     }
 
+    .lead-row input.invalid {
+      border-color: #ff6b6b;
+      background: rgba(255, 107, 107, .06)
+    }
+
+    .lead-err {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: .03em;
+      color: #ff8585;
+      margin-top: 10px
+    }
+
+    .lead-err[hidden] {
+      display: none
+    }
+
     .lead-btn {
       width: 100%;
       justify-content: center;
@@ -914,14 +931,84 @@
     }
 
     @media(max-width:560px) {
+      .wrap {
+        padding: 0 18px
+      }
+
+      /* slimmer buttons + tap targets that aren't chunky */
+      .btn {
+        padding: 13px 18px;
+        font-size: 12px
+      }
+
+      /* header */
+      .nav {
+        padding: 13px 0
+      }
+
+      .logo-img {
+        height: 36px
+      }
+
+      .logo-divider,
+      .logo .tag {
+        display: none
+      }
+
+      .nav-phone {
+        padding: 10px 14px;
+        font-size: 12px;
+        gap: 7px
+      }
+
+      .nav-phone svg {
+        width: 14px;
+        height: 14px
+      }
+
+      /* hero */
+      .hero-inner {
+        padding: 104px 0 48px
+      }
+
+      .hero-sub {
+        font-size: 15.5px;
+        margin-top: 20px
+      }
+
+      .estimate-card {
+        padding: 16px;
+        margin-top: 28px
+      }
 
       .addr-row,
       .lead-row {
         flex-direction: column
       }
 
-      .nav-phone {
-        padding: 11px 16px
+      /* sections / result */
+      .sec {
+        padding: 60px 0
+      }
+
+      .result-inner {
+        padding: 70px 0
+      }
+
+      .sec-head {
+        margin-bottom: 34px
+      }
+
+      .map-side {
+        min-height: 320px
+      }
+
+      .info-side {
+        padding: 26px 22px
+      }
+
+      .foot-grid {
+        gap: 22px
       }
     }
   </style>
@@ -1027,9 +1114,10 @@
           <p class="est-disclaim">Request a quote to reveal pricing — final figures confirmed in an on-site
             inspection and written quote.</p>
           <div class="lead-row">
-            <input id="lead-name" type="text" placeholder="Name" />
-            <input id="lead-phone" type="text" placeholder="Email or phone" />
+            <input id="lead-name" type="text" autocomplete="name" placeholder="Name *" required />
+            <input id="lead-phone" type="text" autocomplete="email" placeholder="Email or phone *" required />
           </div>
+          <div class="lead-err" id="lead-err" hidden></div>
           <button class="btn btn-teal lead-btn" id="lead-btn">Request a quote</button>
         </div>
       </div>
@@ -1097,6 +1185,8 @@
       /* ---------- estimate engine ---------- */
       function seedFrom(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
       let leafMap = null;
+      let lastScan = null;   // latest scan summary, used to curate the quote text message
+      const QUOTE_SMS_TO = "4084206979";   // owner cell that receives quote-request texts
 
       async function geocode(addr) {
         const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(addr);
@@ -1344,7 +1434,8 @@
         // Fill all text FIRST — this sets the info column's final height. The map column
         // stretches to match, so the overlay must render after, with a fresh invalidateSize().
         const e = computeEstimate(rng, source === "solar" ? { areaFt2: building.roofFt2, pitch: building.pitch } : null);
-        $("#r-addr").textContent = label ? label.split(",").slice(0, 3).join(", ").trim() : addr;
+        lastScan = { address: label ? label.split(",").slice(0, 3).join(", ").trim() : addr, areaFt2: e.area, squares: e.squares.toFixed(1), pitch: e.pitch };
+        $("#r-addr").textContent = lastScan.address;
         $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${source === "solar" ? "GOOGLE BUILDINGS + SOLAR" : source === "satellite" ? "LIVE IMAGERY" : "SIMULATED"}`;
         animNum($("#r-area"), e.area, "ft²", 0);
         animNum($("#r-squares"), e.squares, "sq", 1);
@@ -1448,7 +1539,41 @@
         sugEl.addEventListener("mousedown", e => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pick(+li.dataset.i); } });
         document.addEventListener("click", e => { if (!e.target.closest(".addr-field")) hide(); });
       })();
-      $("#lead-btn").addEventListener("click", () => { const b = $("#lead-btn"); const o = b.textContent; b.textContent = "Received — we'll reach out ✓"; b.disabled = true; setTimeout(() => { b.textContent = o; b.disabled = false; }, 3200); });
+      (function () {
+        const name = $("#lead-name"), contact = $("#lead-phone"), err = $("#lead-err"), b = $("#lead-btn");
+        const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        const isPhone = v => (v.match(/\d/g) || []).length >= 10;   // ≥10 digits
+        function clearErr() { err.hidden = true; name.classList.remove("invalid"); contact.classList.remove("invalid"); }
+        name.addEventListener("input", clearErr); contact.addEventListener("input", clearErr);
+        b.addEventListener("click", () => {
+          const n = name.value.trim(), c = contact.value.trim();
+          const badName = !n, badContact = !(isEmail(c) || isPhone(c));
+          name.classList.toggle("invalid", badName); contact.classList.toggle("invalid", badContact);
+          if (badName || badContact) {
+            err.textContent = badName
+              ? (badContact ? "Enter your name and a valid email or phone." : "Enter your name.")
+              : "Enter a valid email or phone number.";
+            err.hidden = false;
+            (badName ? name : contact).focus();
+            return;
+          }
+          clearErr();
+          // Curate the quote text and open the visitor's SMS app pre-addressed to the owner.
+          const lines = [
+            "AMK Roofing — quote request",
+            `Name: ${n}`,
+            `Contact: ${c}`
+          ];
+          if (lastScan) {
+            lines.push(`Address: ${lastScan.address}`);
+            lines.push(`Roof: ~${lastScan.areaFt2.toLocaleString()} ft² · ${lastScan.squares} sq · ${lastScan.pitch}° pitch`);
+          }
+          const body = encodeURIComponent(lines.join("\n"));
+          window.location.href = `sms:${QUOTE_SMS_TO}?&body=${body}`;
+          const o = b.textContent; b.textContent = "Opening your texts… ✓"; b.disabled = true;
+          setTimeout(() => { b.textContent = o; b.disabled = false; }, 3200);
+        });
+      })();
       // Clicking the redacted price nudges the customer to the quote form.
       $("#r-cost").addEventListener("click", () => { const n = $("#lead-name"); n.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => n.focus(), 350); });
       addEventListener("resize", () => { if (leafMap) leafMap.invalidateSize(); });
