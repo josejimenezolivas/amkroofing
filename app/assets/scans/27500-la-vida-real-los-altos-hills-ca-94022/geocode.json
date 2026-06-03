@@ -1,0 +1,21 @@
+{
+  "place_id": 322765579,
+  "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+  "osm_type": "way",
+  "osm_id": 8949495,
+  "lat": "37.3656625",
+  "lon": "-122.1509357",
+  "class": "highway",
+  "type": "residential",
+  "place_rank": 26,
+  "importance": 0.053387821011673116,
+  "addresstype": "road",
+  "name": "La Vida Real",
+  "display_name": "La Vida Real, Los Altos Hills, Santa Clara County, California, 94022, United States",
+  "boundingbox": [
+    "37.3656328",
+    "37.3663150",
+    "-122.1513373",
+    "-122.1500289"
+  ]
+}

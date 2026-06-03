@@ -1,11 +1,11 @@
 {
-  "address": "184 talmadge ave",
+  "address": "184 Talmadge Ave, San Jose, CA 95127",
   "displayName": "184, Talmadge Avenue, Alum Rock, San Jose, Santa Clara County, California, 95127, United States",
   "location": {
     "lat": 37.3699635,
     "lon": -121.8299702
   },
-  "fetchedAt": "2026-06-02T13:30:50.411Z",
+  "fetchedAt": "2026-06-03T00:34:22.146Z",
   "imageryQuality": "HIGH",
   "imageryDate": {
     "year": 2024,
@@ -14,5 +14,6 @@
   },
   "roofAreaFt2": 1943,
   "avgPitchDegrees": 23.6,
-  "segmentCount": 7
+  "segmentCount": 7,
+  "outlineVertices": 11
 }

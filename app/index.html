@@ -716,6 +716,37 @@
       color: var(--teal-bright)
     }
 
+    .est-row .v.classified {
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .est-row .v.classified .redacted {
+      color: var(--teal-bright);
+      filter: blur(7px);
+      user-select: none;
+      transition: filter .25s
+    }
+
+    .est-row .v.classified svg {
+      color: var(--teal-bright);
+      opacity: .75;
+      transition: opacity .25s
+    }
+
+    .est-row .v.classified:hover .redacted {
+      filter: blur(4.5px)
+    }
+
+    .est-row .v.classified:hover svg {
+      opacity: 1
+    }
+
     .est-disclaim {
       font-family: var(--mono);
       font-size: 11.5px;
@@ -983,11 +1014,18 @@
                 id="r-pitch">—<small>°</small></span></div>
             <div class="est-row"><span class="k"><span class="dot t"></span>Material (bundles)</span><span
                 class="v teal" id="r-bundles">—<small>bundles</small></span></div>
-            <div class="est-row"><span class="k"><span class="dot t"></span>Est. project cost</span><span class="v teal"
-                id="r-cost">—<small>$</small></span></div>
+            <div class="est-row"><span class="k"><span class="dot t"></span>Est. project cost</span>
+              <button class="v teal classified" id="r-cost" type="button" title="Request a quote to reveal your price">
+                <span class="redacted">$██,███</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <p class="est-disclaim">// Projection from satellite-measured area and typical pitch. Final figures confirmed
-            in an on-site inspection and written quote.</p>
+          <p class="est-disclaim">Request a quote to reveal pricing — final figures confirmed in an on-site
+            inspection and written quote.</p>
           <div class="lead-row">
             <input id="lead-name" type="text" placeholder="Name" />
             <input id="lead-phone" type="text" placeholder="Email or phone" />
@@ -1097,7 +1135,9 @@
         return esriLayer(); // explicit "osm", or Google unavailable → free fallback
       }
       async function buildMap(lat, lon) {
-        const el = $("#map"); el.innerHTML = "";
+        const el = $("#map");
+        if (leafMap) { try { leafMap.remove(); } catch (e) { } leafMap = null; } // tear down prior map (clears _leaflet_id)
+        el.innerHTML = "";
         try {
           const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, boxZoom: false, tap: false, keyboard: false }).setView([lat, lon], 20);
           (await satelliteLayer()).addTo(map);
@@ -1127,8 +1167,7 @@
         const c = Math.cos(rot), s = Math.sin(rot), P = (x, y) => [cx + (x * c - y * s), cy + (x * s + y * c)];
         const pts = [[-sx, -sy], [sx, -sy], [sx, sy], [-sx, sy]].map(p => P(p[0], p[1])); const str = pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
         svg.innerHTML = `<polygon points="${str}" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="9 6" style="filter:drop-shadow(0 0 6px rgba(245,166,35,.6))"><animate attributeName="stroke-dashoffset" from="0" to="30" dur="1.2s" repeatCount="indefinite"/></polygon>
-      ${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#0a1113" stroke="#f5a623" stroke-width="2"/>`).join("")}
-      <text x="${cx}" y="${(cy - sy - 12).toFixed(1)}" fill="#f5a623" font-family="IBM Plex Mono" font-size="11" text-anchor="middle" letter-spacing="2">MEASURED ROOF AREA</text>`;
+      ${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#0a1113" stroke="#f5a623" stroke-width="2"/>`).join("")}`;
       }
 
       function computeEstimate(rng, real) {
@@ -1143,7 +1182,7 @@
         }
         const squares = area / 100;                                 // 1 square = 100 ft²
         const bundles = squares * 3;                                // ~3 bundles per square
-        const cost = area * (6 + rng() * 4);                        // ~$6–$10 / ft² installed
+        const cost = area * (6 + rng() * 4);                        // ~$6–$10 / ft² installed (computed, not rendered)
         return { area: Math.round(area), squares, pitch, bundles, cost };
       }
 
@@ -1165,7 +1204,7 @@
           .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
       }
 
-      // Shape a raw buildingInsights JSON into what drawSolarRoof/computeEstimate need.
+      // Shape a raw buildingInsights JSON into the roof area/pitch used by computeEstimate.
       function parseInsights(j) {
         const sp = j && j.solarPotential; if (!sp || !j.boundingBox) return null;
         const segs = (sp.roofSegmentStats || []).map(s => ({
@@ -1199,20 +1238,25 @@
           || null;
       }
 
-      // Cached-on-disk result for this address, if scripts/fetch-solar.js has run for it.
+      // Cached-on-disk result for this address (Solar insights + building outline).
       async function loadCachedSolar(addr) {
         const entry = matchRegistry(await getRegistry(), addr);
         if (!entry) return null;
         try {
-          const r = await fetch(`assets/scans/${entry.slug}/buildingInsights.json`, { cache: "no-cache" });
-          if (!r.ok) return null;
-          return parseInsights(await r.json());
+          const [ri, ro] = await Promise.all([
+            fetch(`assets/scans/${entry.slug}/buildingInsights.json`, { cache: "no-cache" }),
+            fetch(`assets/scans/${entry.slug}/outline.json`, { cache: "no-cache" }).catch(() => null)
+          ]);
+          if (!ri.ok) return null;
+          const building = parseInsights(await ri.json());
+          if (building && ro && ro.ok) { const o = await ro.json(); building.outline = o && o.ring || null; }
+          return building;
         } catch (e) { return null; }
       }
 
-      // Live API fallback (needs a browser-usable key; exposes it client-side).
+      // Live Solar fallback (needs a browser-usable key; exposes it client-side).
       async function fetchSolar(lat, lon) {
-        if (!GOOGLE_API_KEY || GOOGLE_API_KEY.indexOf("YOUR_") === 0) return null;
+        if (!HAS_KEY) return null;
         const url = "https://solar.googleapis.com/v1/buildingInsights:findClosest"
           + `?location.latitude=${lat}&location.longitude=${lon}&key=${GOOGLE_API_KEY}`;
         const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 9000);
@@ -1223,25 +1267,31 @@
         } catch (e) { clearTimeout(to); return null; }
       }
 
-      // frame the building + draw its bounding box and roof segments into the SVG overlay
-      function drawSolarRoof(b) {
-        if (!leafMap) return;
-        const bb = b.box;
-        try { leafMap.fitBounds(L.latLngBounds([bb.sw.latitude, bb.sw.longitude], [bb.ne.latitude, bb.ne.longitude]), { padding: [46, 46], maxZoom: 20, animate: false }); } catch (e) { }
-        // viewBox MUST match the map's pixel size — that's the space latLngToContainerPoint projects into.
+      // Live building outline via Geocoding API (extra_computations=BUILDING_AND_ENTRANCES).
+      async function fetchBuildingOutline(addr) {
+        if (!HAS_KEY) return null;
+        const url = "https://maps.googleapis.com/maps/api/geocode/json"
+          + `?address=${encodeURIComponent(addr)}&extra_computations=BUILDING_AND_ENTRANCES&key=${GOOGLE_API_KEY}`;
+        try {
+          const r = await fetch(url); if (!r.ok) return null;
+          const res = ((await r.json()).results || [])[0]; if (!res) return null;
+          const b = (res.buildings || [])[0];
+          const coords = b && b.building_outlines && b.building_outlines[0]
+            && b.building_outlines[0].display_polygon && b.building_outlines[0].display_polygon.coordinates;
+          return coords && coords[0] ? coords[0].map(c => [c[1], c[0]]) : null; // [lng,lat] → [lat,lon]
+        } catch (e) { return null; }
+      }
+
+      // Draw the real building outline (Geocoding API) into the SVG overlay.
+      function drawBuildingOutline(ring) {
+        if (!leafMap || !ring || ring.length < 3) return false;
+        try { leafMap.fitBounds(L.latLngBounds(ring), { padding: [46, 46], maxZoom: 20, animate: false }); } catch (e) { }
         const sz = leafMap.getSize(), W = sz.x, H = sz.y, svg = $("#map-outline");
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-        const toRect = box => {
-          const tl = leafMap.latLngToContainerPoint([box.ne.latitude, box.sw.longitude]);
-          const br = leafMap.latLngToContainerPoint([box.sw.latitude, box.ne.longitude]);
-          return { x: Math.min(tl.x, br.x), y: Math.min(tl.y, br.y), w: Math.abs(br.x - tl.x), h: Math.abs(br.y - tl.y) };
-        };
-        const segRects = b.segs.map(s => toRect(s.box)).map(r =>
-          `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${r.w.toFixed(1)}" height="${r.h.toFixed(1)}" rx="2" fill="rgba(94,234,212,0.07)" stroke="#5eead4" stroke-width="1.2" stroke-dasharray="4 4"/>`).join("");
-        const m = toRect(bb), labelY = Math.max(14, m.y - 12);
-        svg.innerHTML = `<rect x="${m.x.toFixed(1)}" y="${m.y.toFixed(1)}" width="${m.w.toFixed(1)}" height="${m.h.toFixed(1)}" fill="rgba(245,166,35,0.10)" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="9 6" style="filter:drop-shadow(0 0 6px rgba(245,166,35,.6))"><animate attributeName="stroke-dashoffset" from="0" to="30" dur="1.2s" repeatCount="indefinite"/></rect>
-      ${segRects}
-      <text x="${(m.x + m.w / 2).toFixed(1)}" y="${labelY.toFixed(1)}" fill="#f5a623" font-family="IBM Plex Mono" font-size="11" text-anchor="middle" letter-spacing="2">MEASURED ROOF AREA</text>`;
+        const pts = ring.map(ll => { const p = leafMap.latLngToContainerPoint(ll); return [p.x, p.y]; });
+        const str = pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+        svg.innerHTML = `<polygon points="${str}" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="9 6" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(245,166,35,.6))"><animate attributeName="stroke-dashoffset" from="0" to="30" dur="1.2s" repeatCount="indefinite"/></polygon>`;
+        return true;
       }
       function animNum(el, target, unit, dec) {
         let i = 0; const steps = 30, small = unit ? `<small>${unit}</small>` : "";
@@ -1266,6 +1316,7 @@
           lat = geo.lat; lon = geo.lon; label = geo.label;
           const [, liveBuilding] = await Promise.all([buildMap(lat, lon), building ? Promise.resolve(building) : fetchSolar(lat, lon)]);
           building = liveBuilding;
+          if (building && !building.outline) building.outline = await fetchBuildingOutline(addr); // live outline
         } else {
           lat = 37.3349 + (rng() - .5) * 0.2; lon = -122.009 + (rng() - .5) * 0.2; label = addr;
         }
@@ -1273,19 +1324,16 @@
         // A real geocode = real ArcGIS satellite imagery (loads async). The simulated
         // canvas is ONLY for the no-geocode case — never paint over a real address.
         const source = geo ? (building ? "solar" : "satellite") : "simulated";
+        const hasOutline = source === "solar" && building.outline && building.outline.length > 2;
 
         const lbl = $("#map-label");
         lbl.classList.toggle("sim", source === "simulated");
-        lbl.childNodes[1].nodeValue = source === "solar" ? "ROOF SEGMENTS"
-          : source === "satellite" ? "LIVE SATELLITE · EST. OUTLINE"
-            : "SIMULATED · IMAGERY OFFLINE";
+        lbl.childNodes[1].nodeValue = "LIVE SATELLITE";
 
         const legend = $("#map-legend");
-        if (source === "solar") {
+        if (hasOutline) {
           legend.hidden = false;
-          legend.innerHTML =
-            `<div class="row"><span class="sw amber"></span>Building footprint</div>`
-            + `<div class="row"><span class="sw teal"></span>Roof segments (${building.segs.length})</div>`;
+          legend.innerHTML = `<div class="row"><span class="sw amber"></span>Building outline</div>`;
         } else if (source === "satellite") {
           legend.hidden = false;
           legend.innerHTML = `<div class="row"><span class="sw amber"></span>Estimated roof outline</div>`;
@@ -1297,17 +1345,17 @@
         // stretches to match, so the overlay must render after, with a fresh invalidateSize().
         const e = computeEstimate(rng, source === "solar" ? { areaFt2: building.roofFt2, pitch: building.pitch } : null);
         $("#r-addr").textContent = label ? label.split(",").slice(0, 3).join(", ").trim() : addr;
-        $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${source === "solar" ? (building.segs.length + " roof segments") : source === "satellite" ? "LIVE IMAGERY" : "SIMULATED"}`;
+        $("#r-coord").textContent = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°  ·  ${source === "solar" ? "GOOGLE BUILDINGS + SOLAR" : source === "satellite" ? "LIVE IMAGERY" : "SIMULATED"}`;
         animNum($("#r-area"), e.area, "ft²", 0);
         animNum($("#r-squares"), e.squares, "sq", 1);
         animNum($("#r-pitch"), e.pitch, "°", 0);
         animNum($("#r-bundles"), Math.round(e.bundles), "bundles", 0);
-        animNum($("#r-cost"), Math.round(e.cost), "$", 0);
 
         // Render map/overlay last, after layout settles, so Leaflet sizes & projects correctly.
         requestAnimationFrame(() => {
           if (leafMap) leafMap.invalidateSize();
-          if (source === "solar") drawSolarRoof(building);
+          if (hasOutline) drawBuildingOutline(building.outline);
+          else if (source === "solar") $("#map-outline").innerHTML = ""; // Solar numbers, no outline available
           else if (source === "satellite") drawOutline(rng);
           else { drawFallback(rng); drawOutline(rng); }
         });
@@ -1319,28 +1367,75 @@
       $("#estimate-go").addEventListener("click", () => run($("#addr-input").value));
       const demo = $("#demo-addr"); if (demo) demo.addEventListener("click", () => { $("#addr-input").value = demo.textContent; run(demo.textContent); });
 
-      /* ---------- address autocomplete (free — from cached scans registry) ---------- */
+      /* ---------- address autocomplete (cached scans + OSM via Photon) ---------- */
+      // Photon is the OSM type-ahead geocoder (free, CORS). Nominatim's policy forbids
+      // client-side autocomplete, so we use Photon for suggestions and Nominatim only to
+      // geocode the chosen address. Biased toward the Bay Area.
+      const _osmCache = new Map();   // memoize per query → instant on repeat/backspace
+      let _osmAbort = null;          // cancel the in-flight request when a newer keystroke lands
+      async function osmSuggest(q) {
+        const key = q.toLowerCase();
+        if (_osmCache.has(key)) return _osmCache.get(key);
+        if (_osmAbort) _osmAbort.abort();
+        _osmAbort = new AbortController();
+        try {
+          const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en&lat=37.34&lon=-121.9`, { signal: _osmAbort.signal });
+          if (!r.ok) return [];
+          const j = await r.json();
+          const out = (j.features || []).map(f => {
+            const p = f.properties || {};
+            const line = [[p.housenumber, p.street].filter(Boolean).join(" "), p.city || p.town || p.village || p.county, p.state]
+              .filter(Boolean).join(", ");
+            return { address: line || p.name || "", osm: true };
+          }).filter(s => s.address);
+          _osmCache.set(key, out);
+          return out;
+        } catch (e) { return []; }   // AbortError or network → empty (stale guard drops it anyway)
+      }
       (function () {
         const inp = $("#addr-input"), sugEl = $("#addr-suggest");
-        let scanIndex = [], items = [], active = -1;
-        getRegistry().then(j => { scanIndex = j; if (document.activeElement === inp) render(inp.value); });
+        let scanIndex = [], items = [], active = -1, debTimer = null, reqSeq = 0;
+        getRegistry().then(j => { scanIndex = j; if (document.activeElement === inp) update(inp.value); });
 
-        function render(q) {
-          const term = (q || "").trim().toLowerCase();
-          items = (!term ? scanIndex.slice()
-            : scanIndex.filter(e => (e.address + " " + (e.displayName || "")).toLowerCase().includes(term))).slice(0, 8);
-          active = -1;
+        function cachedMatches(term) {
+          return (!term ? scanIndex.slice()
+            : scanIndex.filter(e => (e.address + " " + (e.displayName || "")).toLowerCase().includes(term)))
+            .slice(0, 6).map(e => ({ address: e.address, roofAreaFt2: e.roofAreaFt2, cached: true }));
+        }
+        function paintList() {
           if (!items.length) { hide(); return; }
           sugEl.innerHTML = items.map((e, i) =>
-            `<li data-i="${i}"><span>${e.address}</span><span class="meta">${e.roofAreaFt2 ? e.roofAreaFt2.toLocaleString() + " ft²" : ""}</span></li>`).join("");
-          sugEl.hidden = false;
+            `<li data-i="${i}"><span>${e.address}</span><span class="meta">${e.cached ? (e.roofAreaFt2 ? e.roofAreaFt2.toLocaleString() + " ft²" : "saved") : "OSM"}</span></li>`).join("");
+          sugEl.hidden = false; active = -1; paint();
+        }
+        function merge(cached, osm) {
+          const seen = new Set(cached.map(e => e.address.toLowerCase())), dedup = [];
+          for (const o of osm) { const k = o.address.toLowerCase(); if (!seen.has(k)) { seen.add(k); dedup.push(o); } }
+          return cached.concat(dedup).slice(0, 8);
+        }
+        function update(q) {
+          const term = (q || "").trim().toLowerCase();
+          const cached = cachedMatches(term);
+          clearTimeout(debTimer);
+          if (term.length < 3) { items = cached.slice(); paintList(); return; }
+          // Keep prior OSM rows visible while the new ones load (no empty flicker).
+          items = merge(cached, items.filter(i => i.osm)); paintList();
+          if (_osmCache.has(term)) {                       // cached result → instant, no debounce
+            items = merge(cached, _osmCache.get(term)); paintList(); return;
+          }
+          const seq = ++reqSeq;
+          debTimer = setTimeout(async () => {
+            const osm = await osmSuggest(q.trim());
+            if (seq !== reqSeq) return;                    // drop stale response
+            items = merge(cached, osm); paintList();
+          }, 140);
         }
         function hide() { sugEl.hidden = true; sugEl.innerHTML = ""; active = -1; }
         function paint() { [...sugEl.children].forEach((li, i) => li.classList.toggle("active", i === active)); }
         function pick(i) { const e = items[i]; if (!e) return; inp.value = e.address; hide(); run(e.address); }
 
-        inp.addEventListener("input", () => render(inp.value));
-        inp.addEventListener("focus", () => { if (scanIndex.length) render(inp.value); });
+        inp.addEventListener("input", () => update(inp.value));
+        inp.addEventListener("focus", () => update(inp.value));
         inp.addEventListener("keydown", e => {
           if (!sugEl.hidden && items.length) {
             if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(active + 1, items.length - 1); paint(); return; }
@@ -1354,6 +1449,8 @@
         document.addEventListener("click", e => { if (!e.target.closest(".addr-field")) hide(); });
       })();
       $("#lead-btn").addEventListener("click", () => { const b = $("#lead-btn"); const o = b.textContent; b.textContent = "Received — we'll reach out ✓"; b.disabled = true; setTimeout(() => { b.textContent = o; b.disabled = false; }, 3200); });
+      // Clicking the redacted price nudges the customer to the quote form.
+      $("#r-cost").addEventListener("click", () => { const n = $("#lead-name"); n.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => n.focus(), 350); });
       addEventListener("resize", () => { if (leafMap) leafMap.invalidateSize(); });
     })();
   </script>

@@ -1,0 +1,19 @@
+{
+  "address": "27500 La Vida Real, Los Altos Hills, CA 94022",
+  "displayName": "La Vida Real, Los Altos Hills, Santa Clara County, California, 94022, United States",
+  "location": {
+    "lat": 37.3656625,
+    "lon": -122.1509357
+  },
+  "fetchedAt": "2026-06-03T00:30:03.173Z",
+  "imageryQuality": "HIGH",
+  "imageryDate": {
+    "year": 2024,
+    "month": 5,
+    "day": 20
+  },
+  "roofAreaFt2": 2022,
+  "avgPitchDegrees": 18,
+  "segmentCount": 6,
+  "outlineVertices": 45
+}

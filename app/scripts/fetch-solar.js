@@ -59,6 +59,21 @@ async function solar(lat, lon, key) {
   return { ok: r.ok, status: r.status, body: j };
 }
 
+// Google Geocoding API (extra_computations=BUILDING_AND_ENTRANCES) → real building outline polygon.
+async function buildingOutline(addr, key) {
+  const url = "https://maps.googleapis.com/maps/api/geocode/json"
+    + `?address=${encodeURIComponent(addr)}&extra_computations=BUILDING_AND_ENTRANCES&key=${key}`;
+  const r = await fetch(url);
+  const j = await r.json();
+  const res = (j.results || [])[0];
+  if (!res) return null;
+  const b = (res.buildings || [])[0];
+  const coords = b && b.building_outlines && b.building_outlines[0]
+    && b.building_outlines[0].display_polygon && b.building_outlines[0].display_polygon.coordinates;
+  const ring = coords && coords[0] ? coords[0].map(c => [c[1], c[0]]) : null; // [lng,lat] → [lat,lon]
+  return { ring, placeId: b ? b.place_id : null, formatted: res.formatted_address || null };
+}
+
 function box2ring(b) { // Google {sw,ne} → GeoJSON ring [lon,lat]
   return [[b.sw.longitude, b.sw.latitude], [b.ne.longitude, b.sw.latitude],
   [b.ne.longitude, b.ne.latitude], [b.sw.longitude, b.ne.latitude], [b.sw.longitude, b.sw.latitude]];
@@ -139,11 +154,21 @@ async function processAddress(addr, key) {
   const insights = res.body;
   writeJSON(path.join(dir, "buildingInsights.json"), insights);
   writeJSON(path.join(dir, "roof.geojson"), buildGeoJSON(insights));
-  const summary = summarize(addr, geo, insights);
-  writeJSON(path.join(dir, "summary.json"), summary);
-  updateRegistry({ slug, address: addr, displayName: geo.displayName, roofAreaFt2: summary.roofAreaFt2, segmentCount: summary.segmentCount, fetchedAt: summary.fetchedAt });
 
-  console.log(`✓ ${summary.segmentCount} segments · ${summary.roofAreaFt2} ft² · ${summary.avgPitchDegrees}° · ${summary.imageryQuality}`);
+  process.stdout.write("  outline… ");
+  let outline = null;
+  try { outline = await buildingOutline(addr, key); } catch (e) { }
+  if (outline && outline.ring) {
+    writeJSON(path.join(dir, "outline.json"), outline);
+    console.log(`✓ ${outline.ring.length} vertices`);
+  } else { console.log("✗ no building outline"); }
+
+  const summary = summarize(addr, geo, insights);
+  summary.outlineVertices = outline && outline.ring ? outline.ring.length : 0;
+  writeJSON(path.join(dir, "summary.json"), summary);
+  updateRegistry({ slug, address: addr, displayName: geo.displayName, roofAreaFt2: summary.roofAreaFt2, segmentCount: summary.segmentCount, hasOutline: !!(outline && outline.ring), fetchedAt: summary.fetchedAt });
+
+  console.log(`  ✓ ${summary.segmentCount} segments · ${summary.roofAreaFt2} ft² · ${summary.avgPitchDegrees}°`);
   console.log(`  → assets/scans/${slug}/`);
 }
 
