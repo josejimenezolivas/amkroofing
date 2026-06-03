@@ -781,6 +781,30 @@
       background: rgba(255, 107, 107, .06)
     }
 
+    .lead-message {
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .04);
+      border-radius: 5px;
+      padding: 13px 15px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      min-height: 76px
+    }
+
+    .lead-message:focus {
+      border-color: var(--teal)
+    }
+
+    .lead-message::placeholder {
+      color: var(--muted)
+    }
+
     .lead-err {
       font-family: var(--mono);
       font-size: 11.5px;
@@ -1111,12 +1135,12 @@
               </button>
             </div>
           </div>
-          <p class="est-disclaim">Request a quote to reveal pricing — final figures confirmed in an on-site
-            inspection and written quote.</p>
+          <p class="est-disclaim">Request a quote to reveal pricing.</p>
           <div class="lead-row">
             <input id="lead-name" type="text" autocomplete="name" placeholder="Name *" required />
             <input id="lead-phone" type="text" autocomplete="email" placeholder="Email or phone *" required />
           </div>
+          <textarea id="lead-message" class="lead-message" rows="3" placeholder="Message (optional)"></textarea>
           <div class="lead-err" id="lead-err" hidden></div>
           <button class="btn btn-teal lead-btn" id="lead-btn">Request a quote</button>
         </div>
@@ -1186,7 +1210,7 @@
       function seedFrom(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
       let leafMap = null;
       let lastScan = null;   // latest scan summary, used to curate the quote text message
-      const QUOTE_SMS_TO = "4084206979";   // owner cell that receives quote-request texts
+      const FORMSPREE_ENDPOINT = "https://formspree.io/f/mvznpbjg";   // quote leads → emailed to AMK
 
       async function geocode(addr) {
         const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(addr);
@@ -1540,12 +1564,12 @@
         document.addEventListener("click", e => { if (!e.target.closest(".addr-field")) hide(); });
       })();
       (function () {
-        const name = $("#lead-name"), contact = $("#lead-phone"), err = $("#lead-err"), b = $("#lead-btn");
+        const name = $("#lead-name"), contact = $("#lead-phone"), message = $("#lead-message"), err = $("#lead-err"), b = $("#lead-btn");
         const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         const isPhone = v => (v.match(/\d/g) || []).length >= 10;   // ≥10 digits
         function clearErr() { err.hidden = true; name.classList.remove("invalid"); contact.classList.remove("invalid"); }
         name.addEventListener("input", clearErr); contact.addEventListener("input", clearErr);
-        b.addEventListener("click", () => {
+        b.addEventListener("click", async () => {
           const n = name.value.trim(), c = contact.value.trim();
           const badName = !n, badContact = !(isEmail(c) || isPhone(c));
           name.classList.toggle("invalid", badName); contact.classList.toggle("invalid", badContact);
@@ -1558,20 +1582,36 @@
             return;
           }
           clearErr();
-          // Curate the quote text and open the visitor's SMS app pre-addressed to the owner.
-          const lines = [
-            "AMK Roofing — quote request",
-            `Name: ${n}`,
-            `Contact: ${c}`
-          ];
+          // Submit the lead to Formspree (server-side email to AMK — works on any device).
+          const payload = { name: n, _subject: "Roofing quote request" + (lastScan ? ` — ${lastScan.address}` : "") };
+          if (isEmail(c)) payload.email = c; else payload.phone = c;   // `email` sets the reply-to
+          payload.contact = c;
+          const msg = message.value.trim(); if (msg) payload.message = msg;
           if (lastScan) {
-            lines.push(`Address: ${lastScan.address}`);
-            lines.push(`Roof: ~${lastScan.areaFt2.toLocaleString()} ft² · ${lastScan.squares} sq · ${lastScan.pitch}° pitch`);
+            payload.address = lastScan.address;
+            payload.roof = `~${lastScan.areaFt2.toLocaleString()} ft² · ${lastScan.squares} sq · ${lastScan.pitch}° pitch`;
           }
-          const body = encodeURIComponent(lines.join("\n"));
-          window.location.href = `sms:${QUOTE_SMS_TO}?&body=${body}`;
-          const o = b.textContent; b.textContent = "Opening your texts… ✓"; b.disabled = true;
-          setTimeout(() => { b.textContent = o; b.disabled = false; }, 3200);
+          const o = b.textContent; b.textContent = "Sending…"; b.disabled = true;
+          try {
+            const r = await fetch(FORMSPREE_ENDPOINT, {
+              method: "POST",
+              headers: { "Accept": "application/json", "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            if (r.ok) {
+              name.value = ""; contact.value = ""; message.value = "";
+              b.textContent = "Received — we'll reach out ✓";
+              setTimeout(() => { b.textContent = o; b.disabled = false; }, 3500);
+            } else {
+              const data = await r.json().catch(() => ({}));
+              err.textContent = (data.errors && data.errors.map(e => e.message).join(", "))
+                || "Couldn't send — please call us at (408) 591-0733.";
+              err.hidden = false; b.textContent = o; b.disabled = false;
+            }
+          } catch (e) {
+            err.textContent = "Network error — please call us at (408) 591-0733.";
+            err.hidden = false; b.textContent = o; b.disabled = false;
+          }
         });
       })();
       // Clicking the redacted price nudges the customer to the quote form.
