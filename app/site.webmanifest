@@ -1,0 +1,14 @@
+{
+  "name": "AMK Roofing",
+  "short_name": "AMK Roofing",
+  "description": "Licensed and insured Bay Area roofing contractor since 1998.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060a0b",
+  "theme_color": "#060a0b",
+  "icons": [
+    { "src": "/assets/brand/favicon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/brand/favicon-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/brand/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
