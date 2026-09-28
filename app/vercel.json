@@ -2,12 +2,16 @@
   "services": {
     "site": {
       "root": ".",
-      "framework": null,
       "installCommand": "npm --prefix forms-web ci",
       "buildCommand": "node scripts/build.js",
-      "outputDirectory": "dist",
+      "outputDirectory": "dist"
+    },
+    "api": {
+      "root": "api",
+      "runtime": "node",
+      "entrypoint": "index.js",
       "functions": {
-        "api/**/*.js": { "maxDuration": 15 }
+        "index.js": { "maxDuration": 15 }
       }
     },
     "forms": {
@@ -21,6 +25,7 @@
   },
   "rewrites": [
     { "source": "/forms/api/(.*)", "destination": { "service": "forms" } },
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
     { "source": "/(.*)", "destination": { "service": "site" } }
   ]
 }
