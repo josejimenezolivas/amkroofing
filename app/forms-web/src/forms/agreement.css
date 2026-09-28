@@ -338,9 +338,9 @@
 }
 
 /* Lines that reached the measure in the original are justified to it here
-   too; the rest end a paragraph and stay flush left. */
+   too; the rest end a paragraph and stay flush left. They never wrap: a line
+   wider than its box is tightened by `fitLines` instead. */
 .terms__line--justified {
-  white-space: normal;
   text-align: justify;
   text-align-last: justify;
 }

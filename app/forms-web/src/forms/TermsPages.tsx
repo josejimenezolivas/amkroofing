@@ -1,4 +1,7 @@
+import { useLayoutEffect } from "react";
+
 import { cx } from "../lib/cx";
+import { fitLines } from "../lib/fitLines";
 import { PageFooter } from "./PageFooter";
 import { TERMS_SHEETS, type TermLine } from "./termsLines";
 
@@ -6,6 +9,7 @@ function Line({ line }: { line: TermLine }) {
   return (
     <div
       className={cx("terms__line", line.j && "terms__line--justified")}
+      data-fit
       style={{
         left: `${line.x}pt`,
         top: `${line.y}pt`,
@@ -22,6 +26,15 @@ function Line({ line }: { line: TermLine }) {
  * per source line so the wording breaks exactly where the original does.
  */
 export function TermsPages() {
+  useLayoutEffect(() => {
+    let live = true;
+    fitLines();
+    void document.fonts.ready.then(() => live && fitLines());
+    return () => {
+      live = false;
+    };
+  }, []);
+
   return (
     <>
       <section className="sheet" data-page="4">

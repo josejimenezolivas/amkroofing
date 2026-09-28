@@ -14,6 +14,21 @@ from .models import RenderRequest
 _playwright = None
 _browser: Browser | None = None
 
+# Mirrors `forms-web/src/lib/fitLines.ts`. The letter-spacing the editor chose
+# was measured with the user's fonts; re-measure with the ones printing here.
+_FIT_LINES = """() => {
+  const range = document.createRange();
+  for (const el of document.querySelectorAll("[data-fit]")) {
+    el.style.letterSpacing = "";
+    const chars = el.textContent.length;
+    const box = el.getBoundingClientRect();
+    if (!chars || !box.width) continue;
+    range.selectNodeContents(el);
+    const overflow = range.getBoundingClientRect().width - box.width;
+    if (overflow > 0) el.style.letterSpacing = `${-overflow / chars}px`;
+  }
+}"""
+
 
 async def startup() -> None:
     global _playwright, _browser
@@ -66,6 +81,7 @@ async def render_pdf(req: RenderRequest, base_url: str | None = None) -> bytes:
     try:
         await page.set_content(build_page(req, base_url), wait_until="load")
         await page.evaluate("document.fonts.ready")
+        await page.evaluate(_FIT_LINES)
         return await page.pdf(
             format="Letter",
             print_background=True,
