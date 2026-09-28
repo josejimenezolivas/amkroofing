@@ -8,3 +8,6 @@ app/forms-web/node_modules/
 app/forms-web/dist/
 app/forms-api/.venv/
 app/forms-api/.compare/
+
+# Local print of the engineering note. Kept on disk, not in the repo.
+docs/design/
