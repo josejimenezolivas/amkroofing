@@ -28,7 +28,7 @@ const STYLES: Array<[DocStyle, string]> = [
 ];
 
 /** New documents open in this layout; the toolbar switches between them. */
-const DEFAULT_STYLE: DocStyle = "modern";
+const DEFAULT_STYLE: DocStyle = "classic";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
