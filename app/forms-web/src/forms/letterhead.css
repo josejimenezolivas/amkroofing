@@ -1,0 +1,37 @@
+/* Shared AMK letterhead block, positioned by <CompanyHeader top={...} />. */
+
+.letterhead__logo {
+  position: absolute;
+  width: 108pt;
+  height: 51pt;
+  /* A replacement logo of any proportion sits in the original's footprint. */
+  object-fit: contain;
+  object-position: left center;
+}
+
+.letterhead__name {
+  position: absolute;
+  left: 220.9pt;
+  width: 211.6pt;
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+  color: #000099;
+}
+
+.letterhead__line {
+  position: absolute;
+  left: 220.9pt;
+  width: 211.6pt;
+  text-align: center;
+  font-size: 10pt;
+  /* The phone/cell line fills the block exactly; never let it wrap. */
+  white-space: nowrap;
+}
+
+.letterhead__email {
+  position: absolute;
+  left: 36pt;
+  font-size: 10pt;
+  color: #000080;
+}

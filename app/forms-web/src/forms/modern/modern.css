@@ -1,0 +1,485 @@
+/*
+ * The modern layouts.
+ *
+ * Unlike the classic sheets, which pin every element to a coordinate copied
+ * out of the reference PDF, these flow: content decides its own length and the
+ * printer breaks pages. The export therefore asks the server for real `@page`
+ * margins (see MODERN_MARGINS) instead of painting margins into the sheet.
+ */
+
+.msheet {
+  --ink: #1d1d1f;
+  --dim: #6e6e73;
+  --faint: #86868b;
+  --hair: #d2d2d7;
+  --surface: #f5f5f7;
+  --accent: #0071e3;
+
+  box-sizing: border-box;
+  width: 612pt;
+  min-height: 792pt;
+  padding: 54pt 61.2pt;
+  background: #fff;
+  color: var(--ink);
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* In print the page box supplies the margins, so every page gets them. */
+@media print {
+  .msheet {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+  }
+}
+
+/* ----------------------------------------------------------- typography */
+
+.m-display {
+  margin: 0;
+  font-size: 38pt;
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+}
+
+.m-headline {
+  margin: 0;
+  font-size: 23pt;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.m-eyebrow {
+  font-size: 7.5pt;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.m-lede {
+  margin: 0;
+  font-size: 11.5pt;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--dim);
+}
+
+.m-dim {
+  color: var(--dim);
+}
+
+.m-small {
+  font-size: 8pt;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+.m-legal {
+  margin: 0;
+  font-size: 7.6pt;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+.m-legal + .m-legal {
+  margin-top: 6pt;
+}
+
+.m-legal strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.m-p {
+  margin: 0;
+  font-size: 9pt;
+  line-height: 1.55;
+}
+
+.m-p + .m-p {
+  margin-top: 7pt;
+}
+
+/* --------------------------------------------------------------- header */
+
+.m-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24pt;
+}
+
+.m-head__brand {
+  display: flex;
+  align-items: center;
+  gap: 10pt;
+}
+
+.m-head__logo {
+  width: 52pt;
+  height: 26pt;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.m-head__name {
+  font-size: 12pt;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.m-head__contact {
+  text-align: right;
+  font-size: 7.6pt;
+  font-style: normal; /* <address> defaults to italic. */
+  line-height: 1.6;
+  color: var(--dim);
+}
+
+/* ------------------------------------------------------------- sections */
+
+.m-section {
+  margin-top: 26pt;
+}
+
+/*
+ * Sections are free to split across pages -- keeping them whole strands most
+ * of a page whenever the next one is long. Only the heading is pinned, so it
+ * never ends up alone at the foot of a page.
+ */
+.m-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12pt;
+  padding-bottom: 6pt;
+  border-bottom: 0.75pt solid var(--ink);
+  break-after: avoid;
+}
+
+.m-section__title {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Short sections that read as one unit and should not be split. */
+.m-section--keep {
+  break-inside: avoid;
+}
+
+.m-hair {
+  height: 0;
+  border-top: 0.5pt solid var(--hair);
+}
+
+.m-break {
+  break-before: page;
+}
+
+/* ----------------------------------------------------------- definition */
+
+.m-grid {
+  display: grid;
+  gap: 18pt 22pt;
+  margin-top: 14pt;
+}
+
+.m-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.m-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.m-def__label {
+  margin-bottom: 3pt;
+}
+
+.m-def__value {
+  font-size: 9.5pt;
+  line-height: 1.45;
+}
+
+.m-def__value--strong {
+  font-size: 11pt;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------ item list */
+
+.m-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: m-item;
+}
+
+.m-items__row {
+  display: flex;
+  gap: 12pt;
+  padding: 7pt 0;
+  border-bottom: 0.5pt solid var(--hair);
+  break-inside: avoid;
+}
+
+.m-items__num {
+  flex: 0 0 18pt;
+  color: var(--faint);
+  font-size: 8.5pt;
+  font-weight: 500;
+}
+
+.m-items__num::before {
+  counter-increment: m-item;
+  content: counter(m-item, decimal-leading-zero);
+}
+
+.m-items__text {
+  flex: 1;
+  font-size: 9pt;
+  line-height: 1.5;
+}
+
+.m-items__text--lead {
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------- amount rows */
+
+.m-rows {
+  margin-top: 4pt;
+}
+
+.m-rows__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16pt;
+  padding: 6pt 0;
+  border-bottom: 0.5pt solid var(--hair);
+  break-inside: avoid;
+}
+
+.m-rows__label {
+  flex: 1;
+  font-size: 9pt;
+}
+
+.m-rows__amount {
+  flex: 0 0 auto;
+  min-width: 60pt;
+  text-align: right;
+  font-size: 9pt;
+  font-variant-numeric: tabular-nums;
+}
+
+.m-rows__row--quiet .m-rows__label,
+.m-rows__row--quiet .m-rows__amount {
+  color: var(--dim);
+}
+
+.m-rows__row--total {
+  margin-top: 6pt;
+  padding-top: 10pt;
+  border-top: 0.75pt solid var(--ink);
+  border-bottom: none;
+}
+
+.m-rows__row--total .m-rows__label {
+  font-size: 11pt;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.m-rows__row--total .m-rows__amount {
+  font-size: 17pt;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------- pills */
+
+.m-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6pt;
+  margin-top: 12pt;
+}
+
+.m-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3pt 10pt;
+  border: 0.5pt solid var(--hair);
+  border-radius: 999pt;
+  background: #fff;
+  color: var(--dim);
+  font: inherit;
+  font-size: 8pt;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.m-pill--on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+@media screen {
+  .m-pill:hover {
+    border-color: var(--accent);
+  }
+}
+
+/* ---------------------------------------------------------------- panel */
+
+.m-panel {
+  margin-top: 14pt;
+  padding: 14pt 16pt;
+  border-radius: 9pt;
+  background: var(--surface);
+  break-inside: avoid;
+}
+
+.m-panel--accent {
+  background: #f0f6ff;
+}
+
+.m-panel__title {
+  margin-bottom: 6pt;
+}
+
+/* ---------------------------------------------------------------- table */
+
+.m-table {
+  width: 100%;
+  margin-top: 12pt;
+  border-collapse: collapse;
+}
+
+.m-table th {
+  padding: 0 8pt 5pt 0;
+  border-bottom: 0.75pt solid var(--ink);
+  font-size: 7.5pt;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--dim);
+}
+
+.m-table td {
+  padding: 6pt 8pt 6pt 0;
+  border-bottom: 0.5pt solid var(--hair);
+  font-size: 9pt;
+  vertical-align: top;
+}
+
+.m-table th:last-child,
+.m-table td:last-child {
+  padding-right: 0;
+  text-align: right;
+}
+
+.m-table .row-tools {
+  left: -26pt;
+}
+
+/* ------------------------------------------------------------ signature */
+
+.m-signs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22pt 26pt;
+  margin-top: 18pt;
+  break-inside: avoid;
+}
+
+.m-sign__line {
+  display: flex;
+  align-items: flex-end;
+  gap: 6pt;
+  height: 30pt;
+  padding-bottom: 3pt;
+  border-bottom: 0.75pt solid var(--ink);
+}
+
+.m-sign__x {
+  font-size: 10pt;
+  color: var(--faint);
+}
+
+.m-sign__caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 10pt;
+  margin-top: 5pt;
+}
+
+/* --------------------------------------------------------------- footer */
+
+.m-foot {
+  margin-top: 30pt;
+  padding-top: 8pt;
+  border-top: 0.5pt solid var(--hair);
+  display: flex;
+  justify-content: space-between;
+  gap: 16pt;
+  font-size: 7.5pt;
+  color: var(--faint);
+}
+
+/* ----------------------------------------------------------------- misc */
+
+.m-sum {
+  display: flex;
+  align-items: baseline;
+  gap: 8pt;
+}
+
+.m-terms {
+  columns: 2;
+  column-gap: 22pt;
+  margin-top: 12pt;
+  orphans: 3;
+  widows: 3;
+}
+
+.m-terms__heading {
+  margin: 11pt 0 2pt;
+  font-size: 7.6pt;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  break-after: avoid;
+}
+
+.m-terms__heading:first-child {
+  margin-top: 0;
+}
+
+.m-terms__p {
+  margin: 0 0 5pt;
+  font-size: 7.4pt;
+  line-height: 1.45;
+  color: var(--dim);
+  text-align: justify;
+  hyphens: auto;
+}

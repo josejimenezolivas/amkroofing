@@ -1,0 +1,185 @@
+/*
+ * Roofing Job Invoice.
+ * Coordinates transcribed from references/5272_Arezzo_way_invoice.pdf.
+ */
+
+.inv__title {
+  position: absolute;
+  left: 30.6pt;
+  top: 36.7pt;
+  width: 550.8pt;
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+}
+
+.inv__compliance {
+  position: absolute;
+  left: 30.6pt;
+  top: 57pt;
+  width: 550.8pt;
+  text-align: center;
+  font-size: 10pt;
+}
+
+/* Multi-line blocks are raised by half their extra leading so the first line
+   lands on the baseline the PDF uses. */
+.inv__meta {
+  position: absolute;
+  left: 36pt;
+  top: 150.69pt;
+  font-size: 10pt;
+  line-height: 12.5pt;
+}
+
+.inv__pay-label {
+  position: absolute;
+  top: 280.7pt;
+  font-size: 10pt;
+  white-space: nowrap;
+}
+
+/* Doubled class beats the base `.checkbox` rule regardless of import order. */
+.checkbox.inv__checkbox {
+  position: absolute;
+  top: 282.3pt;
+}
+
+.inv__terms {
+  position: absolute;
+  left: 402.1pt;
+  top: 280.7pt;
+  width: 179.3pt;
+  font-size: 10pt;
+}
+
+/* Everything below the payment rule flows, so adding scope lines pushes the
+   summary down instead of overlapping it. */
+.inv__body {
+  position: absolute;
+  left: 30.6pt;
+  top: 316.59pt;
+  width: 550.8pt;
+  height: 410.4pt;
+  display: flex;
+  flex-direction: column;
+}
+
+.inv__warranty {
+  padding-left: 5.4pt;
+  font-size: 10pt;
+  line-height: 11.5pt;
+  color: #0000ff;
+}
+
+.inv__warranty-prefix {
+  display: inline-block;
+  width: 113.3pt;
+}
+
+/* ------------------------------------------------------------ summary box */
+
+.inv-sum {
+  position: relative;
+  box-sizing: border-box;
+  width: 262.1pt;
+  margin-left: -0.5pt;
+  border: 1pt solid #000;
+  border-bottom: none;
+  font-size: 10pt;
+}
+
+.inv-sum__head {
+  box-sizing: border-box;
+  height: 23.6pt;
+  padding: 6.2pt 0 0 5.4pt;
+  border-bottom: 1pt solid #000;
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+.inv-sum__row {
+  display: flex;
+  box-sizing: border-box;
+  height: 12.25pt;
+  border-bottom: 1pt solid #000;
+}
+
+/* The first line item is taller in the original form. */
+.inv-sum__row--tall {
+  height: 19.8pt;
+}
+
+.inv-sum__row--last {
+  height: 11.7pt;
+  border-bottom: none;
+}
+
+.inv-sum__label {
+  box-sizing: border-box;
+  width: 173.3pt;
+  padding-top: 0.1pt;
+}
+
+.inv-sum__row--tall .inv-sum__label,
+.inv-sum__row--tall .inv-sum__amount {
+  padding-top: 6.9pt;
+}
+
+.inv-sum__label--left {
+  padding-left: 5.4pt;
+}
+
+.inv-sum__label--right {
+  padding-right: 4.2pt;
+  text-align: right;
+}
+
+.inv-sum__divider {
+  width: 1pt;
+  background: #000;
+}
+
+.inv-sum__amount {
+  flex: 1;
+  padding: 0.1pt 2pt 0 4.9pt;
+}
+
+/* A short interior rule the original form leaves behind across four rows. */
+.inv-sum__stub {
+  position: absolute;
+  left: 136.6pt;
+  top: 54.7pt;
+  width: 1pt;
+  height: 61.2pt;
+  background: #000;
+}
+
+.inv-sum .ed {
+  display: block;
+}
+
+.inv-sum__label--right .ed {
+  text-align: right;
+}
+
+/* ----------------------------------------------------------------- footer */
+
+.inv__footer {
+  margin-top: auto;
+  text-align: center;
+}
+
+.inv__thanks {
+  font-family: Arial, Helvetica, "Liberation Sans", sans-serif;
+  font-style: italic;
+  font-size: 18pt;
+  line-height: 1.107;
+}
+
+.inv__thanks-rule {
+  width: 180.1pt;
+  height: 1pt;
+  margin: 5.57pt auto 0;
+  background: #000;
+}

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The page and the document — AMK Roofing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1b1814;
+      --muted: #5c564c;
+      --faint: #8a8174;
+      --rule: #e4dcd0;
+      --paper: #f6f1e8;
+      --sheet: #fffcf7;
+      --code: #f3eee4;
+      --accent: #0e5f57;
+      --measure: 42rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--paper); }
+
+    body {
+      margin: 0 auto;
+      max-width: 52rem;
+      padding: 3.5rem 1.75rem 6rem;
+      color: var(--ink);
+      background: var(--sheet);
+      font-family: "Newsreader", "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+      font-size: 1.125rem;
+      font-optical-sizing: auto;
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .print-btn {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--sheet);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.7rem 0.9rem;
+      cursor: pointer;
+    }
+
+    .print-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+    .kicker {
+      margin: 0 0 1.25rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 3.4rem;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+    }
+
+    .deck {
+      margin: 1.4rem 0 0;
+      max-width: 36rem;
+      font-size: 1.35rem;
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .meta {
+      margin-top: 2.4rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--faint);
+    }
+
+    h2 {
+      margin: 3.4rem 0 0.8rem;
+      font-size: 1.85rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    h2 .num {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+    }
+
+    p { margin: 0.85rem 0; }
+
+    strong { font-weight: 600; }
+
+    em { font-style: italic; }
+
+    a { color: var(--accent); }
+
+    ol.principles {
+      margin: 1.4rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    ol.principles li {
+      display: grid;
+      grid-template-columns: 2.2rem 1fr;
+      gap: 0.4rem;
+      padding: 0.55rem 0;
+      border-top: 1px solid var(--rule);
+      font-size: 1.05rem;
+    }
+
+    ol.principles span {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      padding-top: 0.28rem;
+    }
+
+    figure {
+      margin: 1.6rem 0 1.8rem;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+      border: 1px solid var(--rule);
+    }
+
+    figure.sheet img {
+      width: auto;
+      max-width: 100%;
+      max-height: 9.2in;
+      margin: 0 auto;
+    }
+
+    figure.detail img {
+      width: auto;
+      max-width: 28rem;
+      border: none;
+      background: transparent;
+    }
+
+    figcaption {
+      margin-top: 0.55rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      letter-spacing: 0.01em;
+      color: var(--muted);
+    }
+
+    pre {
+      margin: 1.15rem 0 1.3rem;
+      padding: 0.95rem 1.05rem;
+      background: var(--code);
+      border-left: 2px solid var(--accent);
+      overflow-x: auto;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      font-size: 0.74rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    code {
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      font-size: 0.86em;
+    }
+
+    p code, li code { background: var(--code); padding: 0.05em 0.28em; }
+
+    .file {
+      margin: 1.3rem 0 0.35rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+    }
+
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin: 1.4rem 0 1.6rem;
+    }
+
+    .pair figure { margin: 0; }
+
+    .end {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: var(--faint);
+    }
+
+    @media (max-width: 720px) {
+      h1 { font-size: 2.5rem; }
+      .pair { grid-template-columns: 1fr; }
+      body { padding: 2rem 1.1rem 4rem; }
+    }
+
+    @page {
+      size: letter;
+      margin: 0.7in 0.72in 0.75in;
+      @bottom-center {
+        content: counter(page);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 9pt;
+        color: #8a8174;
+      }
+    }
+
+    @media print {
+      html, body { background: #fff; }
+      body {
+        max-width: none;
+        padding: 0;
+        font-size: 11pt;
+      }
+      .print-btn { display: none; }
+      h1 { font-size: 34pt; }
+      .deck { font-size: 14pt; }
+      h2 {
+        break-after: avoid;
+        font-size: 18pt;
+        margin-top: 1.6rem;
+      }
+      h2.break { break-before: page; }
+      p, li { orphans: 3; widows: 3; }
+      figure, pre, .pair { break-inside: avoid; }
+      figure.sheet img { max-height: 7.6in; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn" type="button" onclick="window.print()">Print / Save as PDF</button>
+
+  <p class="kicker">AMK Roofing · Engineering note</p>
+  <h1>The page and the document</h1>
+  <p class="deck">A roofing form has to land on paper where the original landed, and it has to keep working after someone opens it in Word. Those are two geometries. The application refuses to fake one with the other.</p>
+  <p class="meta">September 2026 · amkroofing.com/forms · Open this file in a browser, then print to PDF. In the print dialog, turn background graphics on so the code blocks keep their tint.</p>
+
+  <ol class="principles">
+    <li><span>01</span> One set of facts. Two layouts. Two exports that do not share a renderer.</li>
+    <li><span>02</span> The classic page is drawn in the PDF’s own coordinate space.</li>
+    <li><span>03</span> Editing affordances are forbidden from moving ink.</li>
+    <li><span>04</span> The PDF is a photograph of the page on screen.</li>
+    <li><span>05</span> The Word file is written again, in Word’s own objects.</li>
+    <li><span>06</span> The contract terms are measured from the original, then reflowed.</li>
+    <li><span>07</span> The Google key never enters the browser.</li>
+  </ol>
+
+  <h2><span class="num">01</span> One fact, two geometries</h2>
+  <p>An invoice and a residential agreement are not page templates with holes punched in them. They are a small record: fields, checks, lists, a signature, a logo. Classic and Modern are two readings of that record. Switching tabs does not copy the document and does not lose a keystroke. The toolbar changes which component paints the same store.</p>
+  <p>Classic is the printed original, rebuilt so a sheet can be laid over the source PDF. Modern is the same clauses and the same blanks, set so a longer scope item grows the page instead of colliding with the next rule. The figures below are one saved invoice, the reference job at 5272 Arezzo Way, shown both ways.</p>
+
+  <figure>
+    <img src="figures/editor.png" alt="The forms editor, with the classic invoice open beside the document list." />
+    <figcaption>Fig. 1 — The editor. The list, the Classic/Modern switch, and the sheet are one document. Captured from the running app at /forms.</figcaption>
+  </figure>
+
+  <div class="pair">
+    <figure class="sheet">
+      <img src="figures/classic-invoice.png" alt="Classic roofing job invoice, ruled and set in Times, matching the printed original." />
+      <figcaption>Fig. 2 — Classic. Every rule is a coordinate.</figcaption>
+    </figure>
+    <figure class="sheet">
+      <img src="figures/modern-invoice.png" alt="The same invoice in the modern layout, with the total set large and the scope as a flowing list." />
+      <figcaption>Fig. 3 — Modern. The same dollars, in flow.</figcaption>
+    </figure>
+  </div>
+
+  <p>The store that both layouts read is ordinary React state. A field change is a named write. Neither layout owns the data, so neither can drift from the other while you type.</p>
+
+  <p class="file">app/forms-web/src/lib/documentStore.tsx</p>
+  <pre>setField: (name, value) =&gt;
+  patch((d) =&gt; ({ ...d, fields: { ...d.fields, [name]: value } })),
+
+setCheck: (name, value) =&gt;
+  patch((d) =&gt; ({ ...d, checks: { ...d.checks, [name]: value } })),</pre>
+
+  <h2 class="break"><span class="num">02</span> Draw in the PDF’s coordinates</h2>
+  <p>The source invoices are US Letter, 612 by 792 points. The classic sheet is that rectangle. Positions in the markup are the positions a PDF viewer reports, copied across, not redesigned. A rule under the letterhead is not “somewhere below the header.” It is <code>top: 78.6pt</code>.</p>
+
+  <p class="file">app/forms-web/src/styles/paper.css</p>
+  <pre>.sheet {
+  position: relative;
+  width: 612pt;
+  height: 792pt;
+  font-family: "Times New Roman", Times, "Liberation Serif", Tinos, serif;
+  font-size: 10pt;
+  line-height: 1.107;
+}</pre>
+
+  <p><code>line-height: 1.107</code> is the height of Times New Roman’s glyph box. With that number, the CSS top edge of a line and the text bounding box in the original PDF are the same edge. Without it, every copied coordinate would be systematically wrong, and the error would look like a tasteful adjustment.</p>
+
+  <p class="file">app/forms-web/src/forms/InvoiceForm.tsx</p>
+  <pre>&lt;div className="rule" style={{ left: "30.6pt", top: "78.6pt", width: "550.8pt" }} /&gt;
+
+&lt;CompanyHeader top={81.8} /&gt;</pre>
+
+  <p>Modern refuses that discipline on purpose. Content decides its height, and the printer breaks pages. When that layout is exported, the server is asked for real page margins — 0.75 inches top and bottom, 0.85 on the side — because the sheet no longer paints its own frame. Chromium’s PDF margin API speaks inches, so the constants are inches that match the on-screen padding in points.</p>
+
+  <p class="file">app/forms-web/src/forms/modern/parts.tsx</p>
+  <pre>/** 0.75in is 54pt and 0.85in is 61.2pt, matching `.msheet`'s padding. */
+export const MODERN_MARGINS = { top: "0.75in", bottom: "0.75in", side: "0.85in" };</pre>
+
+  <h2 class="break"><span class="num">03</span> Hints that do not move the page</h2>
+  <p>An empty invoice still has to print clean, and a blank field still has to be findable on screen. The usual fix — a border, a minimum width, a placeholder input — changes the line box. On a page matched to a tenth of a point, a one-pixel border is enough to wrap a cell and shove a rule.</p>
+  <p>So the hint is the <code>::before</code> of an empty contenteditable, and it is <code>white-space: nowrap</code> so a long prompt cannot grow the line. The underline is an inset shadow. The focus ring is an outline. Neither occupies layout. Both live in <code>@media screen</code>, which means the print and the PDF, which are not screen, never see them.</p>
+
+  <figure class="detail">
+    <img src="figures/placeholders.png" alt="Empty invoice fields showing grey placeholders: 0000-0000, Month Year, Job ID, Location, each underlined." />
+    <figcaption>Fig. 4 — A new classic invoice. The grey prompts are screen furniture. They are absent from both exports.</figcaption>
+  </figure>
+
+  <p class="file">app/forms-web/src/styles/paper.css</p>
+  <pre>.ed[data-empty]::before {
+  content: attr(data-placeholder);
+  color: #9aa4b2;
+  white-space: nowrap;
+}
+
+@media screen {
+  .ed:focus {
+    background: rgba(37, 99, 235, 0.16);
+    outline: 1px solid rgba(37, 99, 235, 0.55);
+  }
+  .ed[data-empty] {
+    box-shadow: inset 0 -1px 0 #ccd4df;
+  }
+}</pre>
+
+  <p>The same component protects the caret and the type. It writes the DOM only when the incoming value actually differs from what is already rendered, so a keystroke does not reset the cursor. A paste is forced to plain text, collapsed to one line unless the field is meant to be a paragraph. The form’s typography is the form’s, not whatever Word or a web page had on the clipboard.</p>
+
+  <p class="file">app/forms-web/src/components/Editable.tsx</p>
+  <pre>onPaste={(e) =&gt; {
+  e.preventDefault();
+  const text = e.clipboardData.getData("text/plain");
+  document.execCommand(
+    "insertText",
+    false,
+    multiline ? text : text.replace(/\s*\n+\s*/g, " "),
+  );
+}}</pre>
+
+  <h2 class="break"><span class="num">04</span> Photograph the page</h2>
+  <p>A second layout engine for PDF would drift. The browser already has the page, typeset, with the logo fitted and the signature drawn. Export sends that markup and every readable stylesheet to the server. Headless Chromium prints it. The download matches the screen because it is the screen, with the editor’s chrome left behind in <code>@media screen</code>.</p>
+
+  <p class="file">app/forms-api/app/pdf.py</p>
+  <pre>def build_page(req, base_url):
+    return f"""&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;{req.css}&lt;/style&gt;
+&lt;style&gt;
+  @page {{ size: letter; margin: {req.margin_top} {req.margin_side} {req.margin_bottom}; }}
+  html, body {{ margin: 0; padding: 0; background: #fff; }}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class="print-root"&gt;{req.html}&lt;/body&gt;
+&lt;/html&gt;"""
+
+return await page.pdf(
+    format="Letter",
+    print_background=True,
+    prefer_css_page_size=True,
+)</pre>
+
+  <p><code>prefer_css_page_size</code> lets the classic sheet’s fixed 612×792 points be the page, edge to edge. The modern sheet, which flows, passes the margins from section 02 instead. One printer, two instructions, chosen by which geometry is on screen.</p>
+
+  <h2 class="break"><span class="num">05</span> Write Word a second time</h2>
+  <p>Word will open HTML. The file would look close, and then fall apart. Absolute positions, the thing that makes Fig. 2 overlay the original, are exactly what stop a longer address from pushing the total down. So the <code>.docx</code> is not a conversion. It is a second implementation of the same record, built from tables, paragraphs, lists, and content controls.</p>
+
+  <p class="file">app/forms-api/app/word/__init__.py</p>
+  <pre>def render_docx(request: WordRequest) -&gt; bytes:
+    sheet = Sheet(request.data, THEMES[request.style])
+    _TEMPLATES[request.template](sheet)
+    buffer = BytesIO()
+    sheet.document.save(buffer)
+    return buffer.getvalue()</pre>
+
+  <p>A blank on screen is a grey prompt that must not print. A blank in Word has to stay blank and still tell the next person what to type. A grey run would do that until they typed, and then the new text would stay grey. Word’s own templates solve this with a plain-text content control: the prompt shows, the control selects as one object, and the first keystroke replaces it with normally formatted text. The export does that, and it emits the control’s children in the order the ECMA-376 schema demands. Word reports “unreadable content” when that order is wrong. <code>order.py</code> is generated from the schema so the order is not a memory.</p>
+
+  <p class="file">app/forms-api/app/word/builder.py</p>
+  <pre>def _placeholder(self, paragraph, tag, text, ink):
+    """A plain-text content control showing its prompt."""
+    sdt = OxmlElement("w:sdt")
+    properties = OxmlElement("w:sdtPr")
+    # Schema order: alias, tag, id, placeholder, then the marker
+    # saying the prompt is showing, then the control's type.
+    ...
+    properties.append(OxmlElement("w:showingPlcHdr"))
+    properties.append(OxmlElement("w:text"))</pre>
+
+  <p>The consequence is deliberate. The Word file is not pixel-identical to the PDF. The PDF is the accurate page. Word is the document someone can keep editing. The modern theme is set in Calibri there, because the SF Pro on screen is not installed on Windows and cannot be embedded.</p>
+
+  <h2 class="break"><span class="num">06</span> Measure the terms, then give them back their paragraphs</h2>
+  <p>The agreement’s last pages are a wall of legal text. Re-typesetting them in Times New Roman looks honest and is wrong. The reference PDF embeds only subsets of its fonts, so those fonts cannot be reused, and the Times New Roman on a Mac is about four percent wider. Four percent is enough to change every line break. A “close enough” setting would be a different contract.</p>
+  <p>The terms are extracted instead. Each line keeps the position it had in the original, and the classic pages place those lines verbatim. The record of each line also remembers whether it was justified. A justified line is, by definition, not the end of its paragraph. That single bit is enough to stitch the lines back into paragraphs for Modern and for Word, which set their own measure and must not keep the original’s line breaks.</p>
+
+  <div class="pair">
+    <figure class="sheet">
+      <img src="figures/classic-agreement.png" alt="First page of the classic residential roofing agreement, with the party table and the scope set inside a ruled frame." />
+      <figcaption>Fig. 5 — Classic agreement, page one. Later pages place the extracted lines where the PDF had them.</figcaption>
+    </figure>
+    <figure class="sheet">
+      <img src="figures/modern-agreement.png" alt="The same agreement in the modern layout, opening with the contract price and a flowing scope." />
+      <figcaption>Fig. 6 — The same agreement, reflowed. The price is the same number.</figcaption>
+    </figure>
+  </div>
+
+  <p class="file">app/forms-api/app/word/prose.py</p>
+  <pre>for line in column:
+    buffer.append(line["t"].strip())
+    if line["j"]:
+        continue  # justified: the paragraph is still going
+    text = " ".join(buffer)
+    blocks.append(Block(
+        heading=len(text) &lt;= 55 and text == text.upper(),
+        text=text,
+    ))</pre>
+
+  <p>The standing clauses — the sentences that are not the terms pages — live in one JSON file the browser renders and the server reads. There is no second copy to “keep in sync,” except the vendor snapshot the container build needs because the API image cannot see the React tree. The build fails if that snapshot drifts.</p>
+
+  <h2 class="break"><span class="num">07</span> The key stays on the server</h2>
+  <p>The marketing site estimates a roof from an address. Solar, geocoding, and satellite tiles are Google APIs, and they bill per call. The first design put the key in the page, which means it was in every browser. The correction is small and strict: the page never receives the key. <code>scripts/config.js</code>, generated at build time, holds a flag for which tile engine to use and nothing else.</p>
+
+  <figure>
+    <img src="figures/site.png" alt="The AMK Roofing homepage: Bay Area Roofs, and a field to estimate a roof from an address." />
+    <figcaption>Fig. 7 — The estimate field. The browser asks /api/solar, /api/geocode, and /api/tiles. The key is read on the server.</figcaption>
+  </figure>
+
+  <p>A proxy that merely hides the key is still a public Google client. Each route therefore refuses work before it spends anything: the method, the presence of the key, the calling origin, a per-IP budget, and a bounding box around the service area. A tile request is checked the same way, by converting the slippy-map indices back to the latitude and longitude of the tile’s center. The in-memory limit is a speed bump. The hard ceiling is the daily quota in Google Cloud.</p>
+
+  <p class="file">app/api/_lib/guard.js</p>
+  <pre>function rejected(req, res, { methods = ["GET"] } = {}) {
+  if (!methods.includes(req.method)) {
+    res.status(405).json({ error: "method_not_allowed" });
+    return true;
+  }
+  if (!KEY) {
+    res.status(503).json({ error: "api_key_not_configured" });
+    return true;
+  }
+  if (!originAllowed(req)) {
+    res.status(403).json({ error: "forbidden_origin" });
+    return true;
+  }
+  if (rateLimited(req)) {
+    res.setHeader("Retry-After", "60");
+    res.status(429).json({ error: "rate_limited" });
+    return true;
+  }
+  return false;
+}</pre>
+
+  <p>The forms API does not borrow those routes. It is mounted at <code>/forms/api</code>, and the roof scan stays at <code>/api/solar</code>, <code>/api/geocode</code>, and <code>/api/tiles</code>. One host, two kinds of request, no shared prefix to collide in. On Vercel the forms server is a container, because printing the page requires Chromium, which a normal function cannot carry. Documents there belong in Blob. The container disk is wiped when an instance scales to zero, and a JSON file on that disk is not a database.</p>
+
+  <p class="end">The forms are served at amkroofing.com/forms. Classic sheets are 612×792pt. PDF export prints the DOM. Word export builds a .docx from the same record. Figures in this note were captured from the local app on 27 September 2026.</p>
+</body>
+</html>

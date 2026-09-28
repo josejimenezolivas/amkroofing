@@ -1,0 +1,54 @@
+{
+  "intro": "This document, including plans/specifications, if any, and all attached hereto shall constitute the Agreement. Unless services were initiated at the contractor's place of business, a “Notice of Cancellation” may be sent to the contractor at the address noted on the contract.",
+
+  "hereinafter": "Hereinafter called “Buyer”, “Owner” and/or “Trustor” agrees to pay therefore the price hereinafter set forth upon the following terms and conditions.",
+
+  "spaceInsufficient": "Check here if this space insufficient for complete specifications (staple additions to original and each copy).",
+
+  "plansAttached": "Check here if there are plans (staple plans to original and each copy).",
+
+  "plansIncorporated": "If checked, additional specifications or plans are attached to and incorporated in this Agreement.",
+
+  "notIncluded": "THE FOLLOWING ITEMS ARE SPECIFICALLY included on THIS CONTRACT AND ARE TO BE PROVIDED BY THE OWNER",
+
+  "allowances": "The following items, where specific prices are indicated, are included in the Contract Price as allowances for the purchase price of those items to be selected by Owner. Owner and Contractor agree to adjust the Contract Price after verification of actual cost difference (if any) of said items selected by Owner.",
+
+  "downPaymentCap": "THE DOWN PAYMENT MAY NOT EXCEED $1,000 OR 10 PERCENT OF THE CONTRACT PRICE, WHICHEVER IS LESS.",
+
+  "scheduleMustDescribe": "The schedule of progress payments must specifically describe each phase of work, including the type and amount of work or services scheduled to be supplied in each phase, along with the amount of each proposed progress payment.",
+
+  "lienRelease": "Upon satisfactory payment being made for any portion of the work performed, the Contractor shall, prior to any further payment being made furnish to the person contracting for the residential improvement a full and unconditional release from any claim or Mechanic’s Lien, pursuant to Section 3114 of the California Civil Code, for that portion of the work for which payment has been made.",
+
+  "paymentTiming": "All payments will be made within five (5) days after billing. Overdue payments will bear interest at the maximum legal permissible rate. If any payment is not made when due, Contractor may keep the job idle until such time as all payments due have been made. A failure of payment for a period in excess of said five (5) days shall be considered a major breach.",
+
+  "againstTheLaw": [
+    "IT IS AGAINST THE LAW FOR A CONTRACTOR TO COLLECT PAYMENT FOR WORK NOT",
+    "YET COMPLETED, OR FOR MATERIALS NOT YET DELIVERED. HOWEVER, A CONTRACTOR",
+    "MAY REQUIRE A DOWNPAYMENT"
+  ],
+
+  "changeOrders": "The buyer may not require a contractor to perform extra or change-order work without providing written authorization prior to the commencement of any work covered by the new change order. Extra work or a change order is not enforceable against a buyer unless the change order also identifies all of the following in writing prior to the commencement of any work covered by the new change order: (1) The scope of work encompassed by the order. (2) The amount to be added or subtracted from the contract. (3) The effect the order will make in the progress payments or the completion date. The contractor's failure to comply with the requirements of this paragraph does not preclude the recovery of compensation for work performed based upon legal or equitable remedies designed to prevent unjust enrichment.",
+
+  "escrow": "Contractor or Owner prior to commencement of construction and subject to lending institution (if any) approval, may request funds to be placed in an Escrow or Funding Voucher Control Service prior to commencement of work with funds to be disbursed to Contractor in accordance with the escrow instructions or voucher orders signed by the Contractor. In the absence of an Escrow or Funding Control Service, funds will be paid directly to the Contractor in accordance with the progress payments schedule referred to above.",
+
+  "doNotSign": [
+    "Do not sign this agreement before you read it or if it contains any blank spaces. Owner acknowledges that Owner has read and received a legible copy of this agreement signed by Contractor, including all terms and conditions herein included, before any work was done, and that Owner has read and received a legible copy of every document that owner has signed during the negotiation. If",
+    "owner cancels this agreement after the right of recession has expired, and before commencement of construction, Owner shall pay Contractor the amount of expenses incurred to that date plus loss of profits."
+  ],
+
+  "entireAgreement": "The terms and conditions on the following are expressly incorporated into this Agreement. This Agreement constitutes the entire understanding of the parties. No other understanding or representations, verbal or otherwise, shall be binding unless in writing and signed by both parties. This Agreement shall not become effective or binding upon Contractor until signed by Contractor or a principal of Contractor. By signature below, Owner acknowledges receipt of a fully completed copy of the Agreement.",
+
+  "licenseBoard": "Contractors are required by law to be licensed and regulated by the Contractors' State License Board which has jurisdiction to investigate complaints against contractors if a complaint regarding a patent act or omission is filed within four years of the date of the alleged violation. A complaint regarding a latent act or omission pertaining to any structural defects must be filed within 10 years of the date of the alleged violation. Any questions concerning a contractor may be referred to the Registrar, Contractors' State License Board, P O Box 26000, Sacramento, California 95826.",
+
+  "performanceBond": "You, as Owner or Tenant, have the right to require the Contractor to have a Performance and Payment Bond.",
+
+  "incorporatedDocuments": "List of Documents to be Incorporated into the Contract: (1) Notice of Right to Cancel, if required (2) Notice of Cancellation, if required \u00a0 (3) Notice to Owner (4) Insurance Notice. A notice concerning commercial general liability insurance is attached to this contract. A notice concerning workers' compensation insurance is attached to this contract.",
+
+  "entitledToCopy": "You are entitled to a completely filled in copy of this agreement, signed by both you and the contractor, before any work may be started.",
+
+  "rightToCancel": [
+    "Unless the customer initiated services at the contractor's place of business, the law requires",
+    "that the contractor give you a notice explaining your right to cancel.",
+    "Initial the checkbox if the contractor has given you a Notice of Your Right to Cancel."
+  ]
+}

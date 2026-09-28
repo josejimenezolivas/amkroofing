@@ -1,4 +1,26 @@
 {
-  "buildCommand": "node scripts/gen-config.js",
-  "outputDirectory": "."
+  "services": {
+    "site": {
+      "root": ".",
+      "framework": null,
+      "installCommand": "npm --prefix forms-web ci",
+      "buildCommand": "node scripts/build.js",
+      "outputDirectory": "dist",
+      "functions": {
+        "api/**/*.js": { "maxDuration": 15 }
+      }
+    },
+    "forms": {
+      "root": "forms-api",
+      "runtime": "container",
+      "entrypoint": "Dockerfile",
+      "functions": {
+        "Dockerfile": { "maxDuration": 60 }
+      }
+    }
+  },
+  "rewrites": [
+    { "source": "/forms/api/(.*)", "destination": { "service": "forms" } },
+    { "source": "/(.*)", "destination": { "service": "site" } }
+  ]
 }

@@ -1,0 +1,382 @@
+/*
+ * Residential Roofing Agreement.
+ * Coordinates transcribed from references/3360_Ramona_Palo_Alto_sample_4.pdf.
+ */
+
+.agr__title {
+  position: absolute;
+  left: 30.6pt;
+  top: 36.7pt;
+  width: 329.6pt;
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+  line-height: 20.7pt;
+}
+
+.agr__compliance {
+  position: absolute;
+  left: 30.6pt;
+  top: 88pt;
+  width: 329.6pt;
+  text-align: center;
+  font-size: 9pt;
+}
+
+.agr__intro {
+  position: absolute;
+  left: 365.4pt;
+  top: 39.4pt;
+  width: 211.6pt;
+  font-size: 10pt;
+  line-height: 11.5pt;
+  text-align: justify;
+}
+
+.agr__banner {
+  position: absolute;
+  left: 30.6pt;
+  width: 550.8pt;
+  text-align: center;
+  font-size: 10pt;
+  font-weight: bold;
+}
+
+.agr__entered {
+  position: absolute;
+  left: 36pt;
+  top: 201.9pt;
+  font-size: 10pt;
+  line-height: 11.4pt;
+}
+
+.agr__hereinafter {
+  position: absolute;
+  left: 38.8pt;
+  top: 301.2pt;
+  width: 539pt;
+  font-size: 9pt;
+}
+
+.agr__proj-label {
+  position: absolute;
+  top: 329.3pt;
+  font-size: 9pt;
+}
+
+.agr__proj-value {
+  position: absolute;
+  top: 339.7pt;
+  font-size: 10pt;
+}
+
+.agr__legal {
+  position: absolute;
+  left: 36pt;
+  top: 358.8pt;
+  width: 542.6pt;
+  font-size: 10pt;
+  line-height: 11.5pt;
+  white-space: nowrap;
+}
+
+/* Fill-in blanks keep the fixed widths the printed form leaves for them. */
+.blank {
+  display: inline-block;
+  width: 30pt;
+}
+
+/* Page 1 flows from the first scope bullet down, so extra work items push the
+   allowances block down rather than colliding with it. */
+.agr__body {
+  position: absolute;
+  left: 30.6pt;
+  top: 397.09pt;
+  width: 550.8pt;
+}
+
+.agr__warranty {
+  margin-top: 1.9pt;
+  padding-left: 5.4pt;
+  font-size: 10pt;
+  line-height: 11.5pt;
+  color: #0000ff;
+}
+
+.agr__warranty-prefix {
+  display: inline-block;
+  width: 113.3pt;
+}
+
+.agr__checks {
+  position: relative;
+  margin-top: 10.9pt;
+  font-size: 9pt;
+  font-weight: bold;
+  line-height: 13pt;
+  padding-left: 31.1pt;
+}
+
+.agr__checks-second {
+  line-height: 10.3pt;
+  margin-top: 1.5pt;
+}
+
+.agr__checks .checkbox {
+  position: absolute;
+  left: 6.3pt;
+  width: 10.2pt;
+  height: 10.2pt;
+  vertical-align: top;
+}
+
+.agr__rule-flow {
+  height: 1pt;
+  background: #000;
+  margin-top: 6.2pt;
+}
+
+.agr__notincluded {
+  margin-top: 2.6pt;
+  font-size: 10pt;
+  line-height: 11.4pt;
+  padding-left: 5.4pt;
+}
+
+.agr__allowances-text {
+  margin-top: 15.7pt;
+  font-size: 10pt;
+  line-height: 11.45pt;
+  padding-left: 5.4pt;
+  text-align: justify;
+}
+
+.agr__notes {
+  margin-top: 2pt;
+  font-size: 10pt;
+  padding-left: 5.4pt;
+}
+
+.agr__notes-value {
+  color: #0000ff;
+}
+
+/* --------------------------------------------------------- allowances box */
+
+.agr-allow {
+  box-sizing: border-box;
+  width: 551.8pt;
+  margin-left: -0.5pt;
+  border: 1pt solid #000;
+  font-size: 10pt;
+}
+
+.agr-allow__row {
+  display: flex;
+  box-sizing: content-box;
+  height: 12pt;
+}
+
+.agr-allow__row + .agr-allow__row {
+  border-top: 1pt solid #000;
+}
+
+.agr-allow__cell {
+  box-sizing: border-box;
+  padding-left: 4.9pt;
+}
+
+.agr-allow__cell--desc {
+  width: 131.2pt;
+}
+
+.agr-allow__cell--amt {
+  width: 48.6pt;
+}
+
+.agr-allow__cell--amt-last {
+  width: 54.1pt;
+}
+
+.agr-allow__divider {
+  width: 1pt;
+  background: #000;
+}
+
+.agr-allow .ed {
+  display: inline-block;
+  min-width: 20pt;
+}
+
+/* ------------------------------------------------------------ pages 2 & 3 */
+
+.agr-p2__time {
+  position: absolute;
+  left: 36pt;
+  top: 58.5pt;
+  width: 542.6pt;
+  font-size: 10pt;
+  line-height: 11.5pt;
+}
+
+.agr-p2__blank {
+  display: inline-block;
+  min-width: 26pt;
+}
+
+.agr-p2__body {
+  position: absolute;
+  left: 36pt;
+  top: 175.1pt;
+  width: 542.6pt;
+}
+
+.agr-p3__body {
+  position: absolute;
+  left: 36pt;
+  top: 36.4pt;
+  width: 542.6pt;
+}
+
+.para {
+  font-size: 10pt;
+  line-height: 11.5pt;
+  text-align: justify;
+  margin: 0;
+}
+
+.para--loud {
+  font-size: 12pt;
+  line-height: 13.8pt;
+  font-weight: bold;
+}
+
+.para--flush {
+  text-align: left;
+}
+
+/* ------------------------------------------------- page 3 signature block */
+
+.agr-sign {
+  position: absolute;
+  left: 30.6pt;
+  top: 392.4pt;
+  width: 550.8pt;
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+.agr-sign__consists {
+  position: absolute;
+  left: 34.6pt;
+  top: 0;
+  white-space: nowrap;
+}
+
+.agr-sign__consists .ed {
+  display: inline-block;
+  min-width: 30pt;
+}
+
+.agr-sign__right {
+  position: absolute;
+  left: 284.4pt;
+  top: 23.3pt;
+  width: 266.4pt;
+}
+
+.agr-sign__x {
+  position: absolute;
+  left: 289.8pt;
+  font-size: 10pt;
+  font-weight: bold;
+}
+
+.agr-sign__suffix {
+  position: absolute;
+  left: 533.6pt;
+  font-size: 10pt;
+  font-weight: bold;
+}
+
+.agr-sign__caption {
+  position: absolute;
+  font-size: 8pt;
+  font-weight: normal;
+}
+
+.agr-sign__slot {
+  position: absolute;
+  left: 298pt;
+}
+
+.checkbox.agr__cancel-box {
+  position: absolute;
+  left: 544pt;
+  top: 349.1pt;
+  width: 18.2pt;
+  height: 18.2pt;
+}
+
+/* ------------------------------------------------------------ terms pages */
+
+.terms__title {
+  position: absolute;
+  left: 30.6pt;
+  top: 34.3pt;
+  width: 550.8pt;
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+}
+
+.terms__line {
+  position: absolute;
+  font-size: 9pt;
+  line-height: 9.77pt;
+  white-space: nowrap;
+}
+
+/* Lines that reached the measure in the original are justified to it here
+   too; the rest end a paragraph and stay flush left. */
+.terms__line--justified {
+  white-space: normal;
+  text-align: justify;
+  text-align-last: justify;
+}
+
+.terms__cont {
+  position: absolute;
+  left: 557.9pt;
+  top: 727.7pt;
+  font-size: 8pt;
+}
+
+/* ---------------------------------------------------------- page footings */
+
+.foot__label {
+  position: absolute;
+  left: 36pt;
+  top: 745.9pt;
+  font-size: 9pt;
+}
+
+.foot__page {
+  position: absolute;
+  left: 30.6pt;
+  width: 550.8pt;
+  top: 745.9pt;
+  text-align: center;
+  font-size: 9pt;
+}
+
+.foot__initial {
+  position: absolute;
+  font-size: 9pt;
+}
+
+.foot__initial-rule {
+  position: absolute;
+  height: 1pt;
+  background: #000;
+}

@@ -1,0 +1,23 @@
+/*
+ * No positioning here on purpose: the layouts place the mark themselves and
+ * this file only adds the affordance, which lives in `@media screen` so it
+ * never reaches the PDF or the Word export.
+ */
+
+.logo__input {
+  display: none;
+}
+
+@media screen {
+  .logo--editable {
+    cursor: pointer;
+    border-radius: 2pt;
+    transition: outline-color 0.12s;
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+  }
+
+  .logo--editable:hover {
+    outline-color: rgba(0, 113, 227, 0.55);
+  }
+}

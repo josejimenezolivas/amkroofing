@@ -1218,7 +1218,7 @@
           </p>
         </div>
         <div>
-          <h4>Quick links</h4><a href="#estimate">Scan a Roof</a><a href="tel:+14085910733">Contact</a>
+          <h4>Quick links</h4><a href="#estimate">Scan a Roof</a><a href="/forms">Forms</a><a href="tel:+14085910733">Contact</a>
         </div>
         <div>
           <h4>Contact</h4><a href="tel:+14085910733">(408) 591-0733</a><a
@@ -1233,8 +1233,9 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <!-- Runtime config: sets window.GOOGLE_MAPS_API_KEY. Generated from the
-       GOOGLE_MAPS_API_KEY env/secret; gitignored so the real key isn't committed. -->
+  <!-- Runtime config: satellite engine flag only. Contains NO credentials — every
+       Google call now goes through the same-origin /api/* proxy, which holds the key
+       server-side. -->
   <script src="scripts/config.js"></script>
   <script>
     (function () {
@@ -1286,24 +1287,17 @@
         return L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
           { maxZoom: 21, maxNativeZoom: 20, attribution: "Imagery © Esri" });
       }
-      let _gtSession = null;
-      async function googleTileSession() { // Map Tiles API session token (cached); null on failure
-        if (_gtSession) return _gtSession;
-        if (!HAS_KEY) return null;
+      // Google satellite via the same-origin proxy. The Map Tiles session token is
+      // created server-side in /api/tiles — no key and no handshake in the browser.
+      async function googleTilesReachable() {
         try {
-          const r = await fetch(`https://tile.googleapis.com/v1/createSession?key=${GOOGLE_API_KEY}`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mapType: "satellite", language: "en-US", region: "US" })
-          });
-          if (!r.ok) return null;
-          _gtSession = (await r.json()).session || null;
-          return _gtSession;
-        } catch (e) { return null; }
+          const r = await fetch("/api/tiles/20/167880/406680", { method: "HEAD" });
+          return r.ok;
+        } catch (e) { return false; }
       }
       async function satelliteLayer() {
-        if (TILE_PROVIDER === "google") {
-          const session = await googleTileSession();
-          if (session) return L.tileLayer(`https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=${session}&key=${GOOGLE_API_KEY}`,
+        if (TILE_PROVIDER === "google" && await googleTilesReachable()) {
+          return L.tileLayer("/api/tiles/{z}/{x}/{y}",
             { maxZoom: 21, maxNativeZoom: 21, attribution: "Imagery © Google" });
         }
         return esriLayer(); // explicit "osm", or Google unavailable → free fallback
@@ -1361,16 +1355,15 @@
       }
 
       /* ---------- Google Solar API (Building Insights) ---------- */
-      // Key (optional) for the LIVE fallback only — supplied via window.GOOGLE_MAPS_API_KEY (scripts/config.js).
-      // Preferred path: pre-fetched results cached on disk by scripts/fetch-solar.js,
-      // loaded same-origin from assets/scans/<address-slug>/buildingInsights.json (no key, no CORS).
-      const GOOGLE_API_KEY = window.GOOGLE_MAPS_API_KEY || "YOUR_GOOGLE_MAPS_API_KEY";
-      const HAS_KEY = GOOGLE_API_KEY && GOOGLE_API_KEY.indexOf("YOUR_") !== 0;
+      // No API key in the browser. Live lookups go to the same-origin /api/* proxy,
+      // which holds GOOGLE_MAPS_API_KEY server-side and enforces the service area.
+      // Preferred path is still the disk cache written by scripts/fetch-solar.js:
+      // assets/scans/<address-slug>/buildingInsights.json (no network call at all).
       const M2_TO_FT2 = 10.7639;
 
-      // Satellite basemap engine flag: "google" (Map Tiles API) or "osm" (free Esri imagery).
-      // Google tiles share the imagery basis of the Solar polygons, so they align best.
-      const TILE_PROVIDER = (window.TILE_PROVIDER || (HAS_KEY ? "google" : "osm")).toLowerCase();
+      // Satellite basemap engine flag: "google" (Map Tiles API via /api/tiles) or
+      // "osm" (free Esri imagery, no Google billing at all).
+      const TILE_PROVIDER = (window.TILE_PROVIDER || "google").toLowerCase();
 
       // Address → directory slug. MUST match slugify() in scripts/fetch-solar.js.
       function slugify(s) {
@@ -1428,32 +1421,27 @@
         } catch (e) { return null; }
       }
 
-      // Live Solar fallback (needs a browser-usable key; exposes it client-side).
+      // Live Solar lookup via the same-origin proxy. /api/solar returns the already
+      // shaped result (same fields parseInsights produces), so no key is needed here.
       async function fetchSolar(lat, lon) {
-        if (!HAS_KEY) return null;
-        const url = "https://solar.googleapis.com/v1/buildingInsights:findClosest"
-          + `?location.latitude=${lat}&location.longitude=${lon}&key=${GOOGLE_API_KEY}`;
-        const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 9000);
+        const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 11000);
         try {
-          const r = await fetch(url, { signal: ctrl.signal }); clearTimeout(to);
+          const r = await fetch(`/api/solar?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
+            { signal: ctrl.signal }); clearTimeout(to);
           if (!r.ok) return null;
-          return parseInsights(await r.json());
+          const shaped = await r.json();
+          return (shaped && shaped.box) ? shaped : null;
         } catch (e) { clearTimeout(to); return null; }
       }
 
-      // Live building outline via Geocoding API (extra_computations=BUILDING_AND_ENTRANCES).
+      // Live building outline via the same-origin proxy, which wraps the Geocoding
+      // API's BUILDING_AND_ENTRANCES computation and returns just the ring.
       async function fetchBuildingOutline(addr) {
-        if (!HAS_KEY) return null;
-        const url = "https://maps.googleapis.com/maps/api/geocode/json"
-          + `?address=${encodeURIComponent(addr)}&extra_computations=BUILDING_AND_ENTRANCES&key=${GOOGLE_API_KEY}`;
         try {
-          const r = await fetch(url); if (!r.ok) return null;
-          const res = ((await r.json()).results || [])[0]; if (!res) return null;
-          const b = (res.buildings || [])[0];
-          const coords = b && b.building_outlines && b.building_outlines[0]
-            && b.building_outlines[0].display_polygon && b.building_outlines[0].display_polygon.coordinates;
-          const ring = coords && coords[0] ? coords[0].map(c => [c[1], c[0]]) : null; // [lng,lat] → [lat,lon]
-          return { ring, formatted: res.formatted_address || null };
+          const r = await fetch(`/api/geocode?address=${encodeURIComponent(addr)}`);
+          if (!r.ok) return null;
+          const j = await r.json();
+          return { ring: j.ring || null, formatted: j.formatted || null };
         } catch (e) { return null; }
       }
       function cleanAddress(s) { return (s || "").replace(/,?\s*(USA|United States)\s*$/i, "").trim(); }

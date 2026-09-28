@@ -1,3 +1,10 @@
 # Local runtime config holding the Google Maps API key — never commit the real key
 app/scripts/config.js
 config.js
+
+# Forms app build output and dependencies
+app/dist/
+app/forms-web/node_modules/
+app/forms-web/dist/
+app/forms-api/.venv/
+app/forms-api/.compare/

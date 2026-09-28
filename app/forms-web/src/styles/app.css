@@ -1,0 +1,492 @@
+/* Editor chrome. None of this reaches the printed page. */
+
+:root {
+  --edge: #e2e8f0;
+  --muted: #64748b;
+  --accent: #1d4ed8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #eef1f6;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #0f172a;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  height: 100vh;
+}
+
+/* ---------------------------------------------------------------- sidebar */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 14px;
+  background: #fff;
+  border-right: 1px solid var(--edge);
+  overflow-y: auto;
+}
+
+.sidebar__brand {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.sidebar__home {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.sidebar__home:hover {
+  color: var(--accent);
+}
+
+.sidebar__new {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar__new button {
+  padding: 8px 10px;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+}
+
+.sidebar__new button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sidebar__heading {
+  margin: 4px 0 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.doclist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doclist li {
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+}
+
+.doclist li:hover {
+  background: #f1f5f9;
+}
+
+.doclist li.is-active {
+  background: #e8effb;
+}
+
+.doclist__open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 8px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+
+.doclist__title {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doclist__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------- style controls */
+
+.tag {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.tag--modern {
+  background: #0071e3;
+  color: #fff;
+}
+
+.tag--classic {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: #eef2f7;
+}
+
+.segmented button {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.segmented button.is-on {
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.16);
+}
+
+.doclist__delete {
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: #94a3b8;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.doclist li:hover .doclist__delete {
+  opacity: 1;
+}
+
+.doclist__delete:hover {
+  color: #dc2626;
+}
+
+.doclist__empty {
+  padding: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------- main */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  background: #fff;
+  border-bottom: 1px solid var(--edge);
+}
+
+.toolbar__title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.toolbar__title strong {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar__template {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.toolbar__save {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.toolbar__save--error {
+  color: #dc2626;
+}
+
+.toolbar__zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.toolbar__zoom button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.toolbar button.primary,
+.modal button.primary {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toolbar button.primary:disabled {
+  background: #94a3b8;
+  cursor: progress;
+}
+
+.toolbar button.ghost {
+  padding: 7px 13px;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toolbar button.ghost:hover {
+  background: #eef4ff;
+}
+
+/* --------------------------------------------------------------- export */
+
+.export {
+  position: relative;
+}
+
+.export button.primary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.export__caret {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.export__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 210px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+}
+
+.export__menu button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 13px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.export__menu button:hover {
+  background: #eef2f9;
+}
+
+.export__ext {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.stage {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.stage__scale {
+  transform-origin: top center;
+  height: fit-content;
+}
+
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.document .sheet {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.16), 0 10px 30px rgba(15, 23, 42, 0.1);
+}
+
+.empty {
+  margin: auto;
+  max-width: 420px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty h2 {
+  font-size: 17px;
+  color: #0f172a;
+}
+
+/* ------------------------------------------------------------------ modal */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal__panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+}
+
+.modal__title {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.modal__canvas {
+  display: block;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.modal__hint {
+  margin: 8px 0 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modal__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal__spacer {
+  flex: 1;
+}
+
+.modal__actions button {
+  padding: 8px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.modal__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Strip the editor entirely when the sheets are printed. */
+@media print {
+  .sidebar,
+  .toolbar,
+  .export__menu,
+  .modal {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .app,
+  .main,
+  .stage,
+  .stage__scale {
+    display: block;
+    padding: 0;
+    overflow: visible;
+    transform: none !important;
+    width: auto !important;
+    height: auto;
+  }
+
+  .document {
+    display: block;
+    gap: 0;
+  }
+
+  .document .sheet {
+    box-shadow: none;
+  }
+}

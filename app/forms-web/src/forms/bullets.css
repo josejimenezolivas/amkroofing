@@ -1,0 +1,34 @@
+/* Scope-of-work bullets: bullet glyph at x=54pt, text column at x=72pt. */
+
+.bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 10pt;
+  line-height: 11.5pt;
+}
+
+.bullets > li {
+  position: relative;
+  padding-left: 41.4pt;
+  padding-right: 2.8pt;
+  margin-bottom: 2.7pt;
+}
+
+.bullets > li:last-child {
+  margin-bottom: 0;
+}
+
+.bullets__item--plain {
+  padding-left: 27.9pt;
+}
+
+.bullets__dot {
+  position: absolute;
+  left: 23.4pt;
+  top: 0;
+}
+
+.bullets .row-tools {
+  left: 1pt;
+}

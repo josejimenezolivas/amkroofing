@@ -1,0 +1,23 @@
+/* Shared NAME / ADDRESS grid used by the invoice and the agreement. */
+
+.party__label {
+  position: absolute;
+  font-size: 9pt;
+  white-space: nowrap;
+}
+
+.party__name {
+  position: absolute;
+  font-size: 9pt;
+}
+
+.party__value {
+  position: absolute;
+  font-size: 10pt;
+}
+
+.party__gutter {
+  position: absolute;
+  font-size: 10pt;
+  font-weight: bold;
+}

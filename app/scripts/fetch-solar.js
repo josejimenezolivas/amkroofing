@@ -12,9 +12,10 @@
  *     roof.geojson            bounding box + roof-segment boxes (drop into geojson.io)
  *   app/assets/scans/index.json   registry of everything cached
  *
- * Key resolution (in order):
- *   1. process.env.GOOGLE_MAPS_API_KEY        ← the real env var
- *   2. window.GOOGLE_MAPS_API_KEY in app/scripts/config.js
+ * Key resolution:
+ *   process.env.GOOGLE_MAPS_API_KEY only. This is an operator tool run from a
+ *   trusted shell; scripts/config.js is generated for the browser and deliberately
+ *   holds no credentials, so it is no longer consulted.
  *
  * Usage:
  *   GOOGLE_MAPS_API_KEY=AIza... node app/scripts/fetch-solar.js "1 Apple Park Way, Cupertino, CA"
@@ -25,7 +26,6 @@ const fs = require("fs");
 const path = require("path");
 
 const SCANS_DIR = path.join(__dirname, "..", "assets", "scans");
-const CONFIG_JS = path.join(__dirname, "config.js");
 const M2_TO_FT2 = 10.7639;
 
 // MUST match slugify() in app/index.html so the browser finds the cached dir.
@@ -35,12 +35,8 @@ function slugify(s) {
 }
 
 function resolveKey() {
-  if (process.env.GOOGLE_MAPS_API_KEY) return process.env.GOOGLE_MAPS_API_KEY.trim();
-  try {
-    const m = fs.readFileSync(CONFIG_JS, "utf8").match(/GOOGLE_MAPS_API_KEY\s*=\s*["']([^"']+)["']/);
-    if (m && !m[1].startsWith("YOUR_")) return m[1];
-  } catch (e) { /* no config.js */ }
-  return null;
+  const k = (process.env.GOOGLE_MAPS_API_KEY || "").trim();
+  return k || null;
 }
 
 async function geocode(addr) {
@@ -175,7 +171,8 @@ async function processAddress(addr, key) {
 (async () => {
   const key = resolveKey();
   if (!key) {
-    console.error("No API key. Set GOOGLE_MAPS_API_KEY or put it in app/scripts/config.js");
+    console.error("No API key. Set GOOGLE_MAPS_API_KEY in your shell, e.g.\n" +
+      "  GOOGLE_MAPS_API_KEY=... node app/scripts/fetch-solar.js \"<address>\"");
     process.exit(1);
   }
   const addrs = process.argv.slice(2);
