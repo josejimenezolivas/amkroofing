@@ -13,17 +13,33 @@
   --g-red: #f08a8a;
 
   position: relative;
+  isolation: isolate;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px;
-  background:
-    radial-gradient(circle at 78% -12%, rgba(45, 212, 191, 0.1), transparent 38%),
-    radial-gradient(circle at 6% 108%, rgba(245, 166, 35, 0.09), transparent 36%),
-    var(--g-bg);
   color: var(--g-text);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* The glows sit on a layer pinned to the screen that runs half a screen past
+   the top and bottom, so stretching the page past an edge (overscroll) shows
+   more of the same background rather than a cut to flat colour. */
+.gate::before {
+  content: "";
+  position: fixed;
+  top: -50vh;
+  left: 0;
+  right: 0;
+  height: 200vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 40vmax at 78% 38vh, rgba(45, 212, 191, 0.1), transparent),
+    radial-gradient(circle 42vmax at 6% 158vh, rgba(245, 166, 35, 0.09), transparent),
+    var(--g-bg);
 }
 
 /* Frosted glass, edged only by light. */

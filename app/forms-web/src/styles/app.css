@@ -17,6 +17,13 @@ body {
   color: #0f172a;
 }
 
+/* Overscroll and the area behind mobile toolbars show the root background.
+   Keep it the site's dark until the (light) editor is on screen. */
+html:not(:has(.app)) {
+  background: #060a0b;
+  color-scheme: dark;
+}
+
 button {
   font: inherit;
 }

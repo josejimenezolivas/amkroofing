@@ -7,7 +7,7 @@
   <title>AMK Roofing</title>
   <meta name="description"
     content="AMK Roofing is a licensed and insured residential and commercial roofing contractor serving the Bay Area since 1998. Get an instant rooftop scan, size and cost estimate." />
-  <meta name="theme-color" content="#060a0b" />
+  <meta name="theme-color" content="#04080a" />
   <link rel="canonical" href="https://www.amkroofing.com/" />
 
   <meta property="og:type" content="website" />
@@ -98,8 +98,11 @@
       box-sizing: border-box
     }
 
+    /* Shown past the page edges when it is stretched (overscroll). It must match
+       the top of the hero and the footer, or the edge reads as a cut. */
     html {
-      scroll-behavior: smooth
+      scroll-behavior: smooth;
+      background: #04080a
     }
 
     body {
@@ -309,7 +312,7 @@
       z-index: 1;
       pointer-events: none;
       background: radial-gradient(ellipse at 30% 40%, rgba(6, 10, 11, .35), transparent 55%),
-        linear-gradient(180deg, rgba(6, 10, 11, .55) 0%, rgba(6, 10, 11, .35) 40%, rgba(6, 10, 11, .92) 100%),
+        linear-gradient(180deg, #04080a 0%, rgba(6, 10, 11, .55) 14%, rgba(6, 10, 11, .35) 40%, rgba(6, 10, 11, .92) 100%),
         linear-gradient(90deg, rgba(6, 10, 11, .78) 0%, transparent 65%)
     }
 
@@ -1218,7 +1221,7 @@
           </p>
         </div>
         <div>
-          <h4>Quick links</h4><a href="#estimate">Scan a Roof</a><a href="/forms">Forms</a><a href="tel:+14085910733">Contact</a>
+          <h4>Quick links</h4><a href="/forms">Forms</a>
         </div>
         <div>
           <h4>Contact</h4><a href="tel:+14085910733">(408) 591-0733</a><a
