@@ -59,7 +59,7 @@ function PageOne() {
       <p className="agr__intro">{LEGAL.intro}</p>
 
       <div className="rule" style={{ left: "30.6pt", top: "108pt", width: "550.8pt" }} />
-      <div className="agr__banner" style={{ top: "115.8pt" }}>
+      <div className="agr__banner" style={{ top: "114pt" }}>
         THIS AGREEMENT IS BETWEEN
       </div>
       <div className="rule" style={{ left: "30.6pt", top: "130pt", width: "550.8pt" }} />
@@ -69,7 +69,7 @@ function PageOne() {
       <div className="agr__entered">
         <div>THIS AGREEMENT IS ENTERED INTO</div>
         <div>
-          THIS DATE:
+          THIS DATE:{" "}
           <Field name="agreement_date" placeholder="Month Year" />
         </div>
       </div>

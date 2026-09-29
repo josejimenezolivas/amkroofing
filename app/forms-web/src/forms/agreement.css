@@ -26,8 +26,9 @@
 .agr__intro {
   position: absolute;
   left: 365.4pt;
-  top: 39.4pt;
+  top: 31.5pt;
   width: 211.6pt;
+  margin: 0;
   font-size: 10pt;
   line-height: 11.5pt;
   text-align: justify;
@@ -45,7 +46,7 @@
 .agr__entered {
   position: absolute;
   left: 36pt;
-  top: 201.9pt;
+  top: 198.5pt;
   font-size: 10pt;
   line-height: 11.4pt;
 }
@@ -144,7 +145,7 @@
 }
 
 .agr__allowances-text {
-  margin-top: 15.7pt;
+  margin: 13.2pt 0 2.5pt;
   font-size: 10pt;
   line-height: 11.45pt;
   padding-left: 5.4pt;
@@ -174,7 +175,7 @@
 .agr-allow__row {
   display: flex;
   box-sizing: content-box;
-  height: 12pt;
+  height: 13pt;
 }
 
 .agr-allow__row + .agr-allow__row {
@@ -183,7 +184,7 @@
 
 .agr-allow__cell {
   box-sizing: border-box;
-  padding-left: 4.9pt;
+  padding: 0.6pt 0 0 4.9pt;
 }
 
 .agr-allow__cell--desc {

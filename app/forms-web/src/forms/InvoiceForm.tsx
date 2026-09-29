@@ -43,16 +43,16 @@ export function InvoiceForm() {
 
       <div className="inv__meta">
         <div>
-          Invoice #:<Field name="invoice_number" placeholder="0000-0000" />
+          Invoice #: <Field name="invoice_number" placeholder="0000-0000" />
         </div>
         <div>
           Date <Field name="invoice_date" placeholder="Month, Year" />
         </div>
         <div>
-          Job ID:<Field name="job_id" placeholder="Job ID" />
+          Job ID: <Field name="job_id" placeholder="Job ID" />
         </div>
         <div>
-          Job Location:<Field name="job_location" placeholder="Location" />
+          Job Location: <Field name="job_location" placeholder="Location" />
         </div>
       </div>
 

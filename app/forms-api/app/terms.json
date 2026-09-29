@@ -1766,17 +1766,10 @@
         },
         {
           "y": 460.53,
-          "x": 371.9,
-          "w": 205.8,
-          "j": false,
-          "t": "¼” x 4¼”"
-        },
-        {
-          "y": 461.08,
           "x": 315.0,
           "w": 262.7,
           "j": true,
-          "t": "non-decorator, 4 . All fireplaces to be prefab with a metal flue."
+          "t": "non-decorator, 4¼” x 4¼”. All fireplaces to be prefab with a metal flue."
         },
         {
           "y": 470.88,

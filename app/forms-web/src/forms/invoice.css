@@ -27,9 +27,9 @@
 .inv__meta {
   position: absolute;
   left: 36pt;
-  top: 150.69pt;
+  top: 147.2pt;
   font-size: 10pt;
-  line-height: 12.5pt;
+  line-height: 12pt;
 }
 
 .inv__pay-label {
@@ -86,7 +86,9 @@
   margin-left: -0.5pt;
   border: 1pt solid #000;
   border-bottom: none;
+  margin-top: 4pt;
   font-size: 10pt;
+  --row: 13.5pt;
 }
 
 .inv-sum__head {
@@ -101,7 +103,7 @@
 .inv-sum__row {
   display: flex;
   box-sizing: border-box;
-  height: 12.25pt;
+  height: var(--row);
   border-bottom: 1pt solid #000;
 }
 
@@ -111,14 +113,14 @@
 }
 
 .inv-sum__row--last {
-  height: 11.7pt;
+  height: calc(var(--row) - 0.5pt);
   border-bottom: none;
 }
 
 .inv-sum__label {
   box-sizing: border-box;
   width: 173.3pt;
-  padding-top: 0.1pt;
+  padding-top: 0.7pt;
 }
 
 .inv-sum__row--tall .inv-sum__label,
@@ -142,16 +144,16 @@
 
 .inv-sum__amount {
   flex: 1;
-  padding: 0.1pt 2pt 0 4.9pt;
+  padding: 0.7pt 2pt 0 4.9pt;
 }
 
-/* A short interior rule the original form leaves behind across four rows. */
+/* A short interior rule the original form leaves behind across rows 2-6. */
 .inv-sum__stub {
   position: absolute;
   left: 136.6pt;
-  top: 54.7pt;
+  top: calc(23.6pt + 19.8pt + var(--row) - 1pt);
   width: 1pt;
-  height: 61.2pt;
+  height: calc(5 * var(--row));
   background: #000;
 }
 
