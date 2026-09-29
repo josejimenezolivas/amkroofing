@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AccountMenu } from "./components/AccountMenu";
 import { api } from "./lib/api";
+import { useDismiss } from "./lib/dismiss";
 import { DocumentProvider } from "./lib/documentStore";
 import { EXPORT_FORMATS, exportDocument, type ExportFormat } from "./lib/exportDocument";
 import type {
@@ -13,6 +15,7 @@ import type {
 } from "./lib/types";
 import { cx } from "./lib/cx";
 import { HOME_URL } from "./lib/home";
+import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
 import { AgreementModern } from "./forms/modern/AgreementModern";
@@ -58,6 +61,7 @@ export function App({ account, onSignOut }: AppProps) {
   const [zoom, setZoom] = useState(1);
   const [exporting, setExporting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
 
   const paperRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -91,24 +95,7 @@ export function App({ account, onSignOut }: AppProps) {
     await pendingSave.current?.();
   }, []);
 
-  // Dismiss the export menu on an outside click or Escape.
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const onPointerDown = (e: PointerEvent) => {
-      if (!exportRef.current?.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [menuOpen]);
+  useDismiss(exportRef, menuOpen, setMenuOpen);
 
   const refreshList = useCallback(async () => setDocs(await api.listDocuments()), []);
 
@@ -292,7 +279,7 @@ export function App({ account, onSignOut }: AppProps) {
   }, [current]);
 
   return (
-    <div className="app">
+    <div className="app" data-theme={theme}>
       <aside className="sidebar">
         <div>
           <h1 className="sidebar__brand">AMK Roofing Forms</h1>
@@ -349,22 +336,12 @@ export function App({ account, onSignOut }: AppProps) {
           {docs.length === 0 && <li className="doclist__empty">No documents yet.</li>}
         </ul>
 
-        <div className="account">
-          {account.picture ? (
-            <img className="account__avatar" src={account.picture} alt="" referrerPolicy="no-referrer" />
-          ) : (
-            <span className="account__avatar" aria-hidden="true">
-              {account.name.charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span className="account__who">
-            <span className="account__name">{account.name}</span>
-            <span className="account__email">{account.email}</span>
-          </span>
-          <button type="button" className="account__out" onClick={() => void signOut()}>
-            Sign out
-          </button>
-        </div>
+        <AccountMenu
+          account={account}
+          theme={themeChoice}
+          onTheme={setThemeChoice}
+          onSignOut={() => void signOut()}
+        />
       </aside>
 
       <main className="main">

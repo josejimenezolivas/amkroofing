@@ -1,9 +1,43 @@
 /* Editor chrome. None of this reaches the printed page. */
 
-:root {
+.app[data-theme="light"] {
+  --canvas: #eef1f6;
+  --surface: #fff;
+  --menu: #fff;
+  --raised: #f8fafc;
+  --hover: #f1f5f9;
+  --selected: #e8effb;
+  --well: #eef2f7;
+  --knob: #fff;
   --edge: #e2e8f0;
+  --text: #0f172a;
   --muted: #64748b;
+  --faint: #94a3b8;
   --accent: #1d4ed8;
+  --on-accent: #fff;
+  --danger: #dc2626;
+  --shadow: rgba(15, 23, 42, 0.14);
+  color-scheme: light;
+}
+
+.app[data-theme="dark"] {
+  --canvas: #060a0b;
+  --surface: #0b1113;
+  --menu: #161f22;
+  --raised: #111a1d;
+  --hover: rgba(232, 240, 241, 0.07);
+  --selected: rgba(45, 212, 191, 0.12);
+  --well: #060a0b;
+  --knob: #1a2629;
+  --edge: rgba(120, 200, 190, 0.14);
+  --text: #e8f0f1;
+  --muted: #8fa0a4;
+  --faint: #5b6b70;
+  --accent: #2dd4bf;
+  --on-accent: #04201c;
+  --danger: #f08a8a;
+  --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
 }
 
 * {
@@ -12,16 +46,18 @@
 
 body {
   margin: 0;
-  background: #eef1f6;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: #0f172a;
 }
 
-/* Overscroll and the area behind mobile toolbars show the root background.
-   Keep it the site's dark until the (light) editor is on screen. */
-html:not(:has(.app)) {
+/* Overscroll and the area behind mobile toolbars show the root background. */
+html {
   background: #060a0b;
   color-scheme: dark;
+}
+
+html:has(.app[data-theme="light"]) {
+  background: #eef1f6;
+  color-scheme: light;
 }
 
 button {
@@ -32,6 +68,8 @@ button {
   display: grid;
   grid-template-columns: 250px 1fr;
   height: 100vh;
+  background: var(--canvas);
+  color: var(--text);
 }
 
 /* ---------------------------------------------------------------- sidebar */
@@ -41,9 +79,9 @@ button {
   flex-direction: column;
   gap: 14px;
   padding: 18px 14px;
-  background: #fff;
+  min-height: 0;
+  background: var(--surface);
   border-right: 1px solid var(--edge);
-  overflow-y: auto;
 }
 
 .sidebar__brand {
@@ -74,7 +112,8 @@ button {
   padding: 8px 10px;
   border: 1px solid var(--edge);
   border-radius: 7px;
-  background: #f8fafc;
+  background: var(--raised);
+  color: inherit;
   cursor: pointer;
   text-align: left;
   font-size: 13px;
@@ -93,7 +132,11 @@ button {
   color: var(--muted);
 }
 
+/* The list scrolls, not the sidebar, so the account menu can float past its edge. */
 .doclist {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -109,11 +152,11 @@ button {
 }
 
 .doclist li:hover {
-  background: #f1f5f9;
+  background: var(--hover);
 }
 
 .doclist li.is-active {
-  background: #e8effb;
+  background: var(--selected);
 }
 
 .doclist__open {
@@ -124,6 +167,7 @@ button {
   padding: 7px 8px;
   border: 0;
   background: none;
+  color: inherit;
   cursor: pointer;
   text-align: left;
   min-width: 0;
@@ -161,15 +205,15 @@ button {
 }
 
 .tag--classic {
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--edge);
+  color: var(--muted);
 }
 
 .segmented {
   display: flex;
   padding: 2px;
   border-radius: 8px;
-  background: #eef2f7;
+  background: var(--well);
 }
 
 .segmented button {
@@ -184,16 +228,16 @@ button {
 }
 
 .segmented button.is-on {
-  background: #fff;
-  color: #0f172a;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.16);
+  background: var(--knob);
+  color: var(--text);
+  box-shadow: 0 1px 2px var(--shadow);
 }
 
 .doclist__delete {
   padding: 4px 8px;
   border: 0;
   background: none;
-  color: #94a3b8;
+  color: var(--faint);
   cursor: pointer;
   opacity: 0;
 }
@@ -203,7 +247,7 @@ button {
 }
 
 .doclist__delete:hover {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .doclist__empty {
@@ -212,23 +256,42 @@ button {
   color: var(--muted);
 }
 
+/* ---------------------------------------------------------------- account */
+
 .account {
+  position: relative;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--edge);
+}
+
+.account__trigger {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid var(--edge);
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px 6px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account__trigger:hover,
+.account__trigger[aria-expanded="true"] {
+  background: var(--hover);
 }
 
 .account__avatar {
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #e8effb;
+  background: var(--selected);
   color: var(--accent);
   font-size: 12px;
   font-weight: 600;
@@ -250,7 +313,7 @@ button {
 }
 
 .account__name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -259,20 +322,80 @@ button {
   color: var(--muted);
 }
 
-.account__out {
-  flex: none;
-  padding: 5px 8px;
+.account__menu {
+  position: absolute;
+  left: calc(100% + 22px);
+  bottom: 0;
+  z-index: 20;
+}
+
+/* ------------------------------------------------------------------- menu */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  padding: 8px;
   border: 1px solid var(--edge);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--muted);
-  font-size: 11px;
+  border-radius: 18px;
+  background: var(--menu);
+  box-shadow: 0 16px 40px var(--shadow);
+}
+
+.menu__sub {
+  position: relative;
+}
+
+.menu--flyout {
+  position: absolute;
+  left: calc(100% + 16px);
+  bottom: -8px;
+  min-width: 190px;
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
 }
 
-.account__out:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.menu__item:hover,
+.menu__item.is-open {
+  background: var(--hover);
+}
+
+.menu__item:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: -2px;
+}
+
+.icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.menu__end {
+  margin-left: auto;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.menu__rule {
+  margin: 6px 4px;
+  border: 0;
+  border-top: 1px solid var(--edge);
 }
 
 /* ------------------------------------------------------------------- main */
@@ -289,7 +412,7 @@ button {
   align-items: center;
   gap: 16px;
   padding: 10px 18px;
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--edge);
 }
 
@@ -318,7 +441,7 @@ button {
 }
 
 .toolbar__save--error {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .toolbar__zoom {
@@ -334,7 +457,8 @@ button {
   height: 24px;
   border: 1px solid var(--edge);
   border-radius: 6px;
-  background: #fff;
+  background: var(--raised);
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -344,13 +468,14 @@ button {
   border: 0;
   border-radius: 7px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .toolbar button.primary:disabled {
-  background: #94a3b8;
+  background: var(--faint);
   cursor: progress;
 }
 
@@ -358,7 +483,7 @@ button {
   padding: 7px 13px;
   border: 1px solid var(--accent);
   border-radius: 7px;
-  background: #fff;
+  background: none;
   color: var(--accent);
   font-size: 13px;
   font-weight: 500;
@@ -366,7 +491,7 @@ button {
 }
 
 .toolbar button.ghost:hover {
-  background: #eef4ff;
+  background: var(--selected);
 }
 
 /* --------------------------------------------------------------- export */
@@ -400,8 +525,8 @@ button {
   list-style: none;
   border: 1px solid var(--edge);
   border-radius: 9px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  background: var(--surface);
+  box-shadow: 0 8px 24px var(--shadow);
 }
 
 .export__menu button {
@@ -421,7 +546,7 @@ button {
 }
 
 .export__menu button:hover {
-  background: #eef2f9;
+  background: var(--hover);
 }
 
 .export__ext {
@@ -442,10 +567,12 @@ button {
   height: fit-content;
 }
 
+/* The paper is always paper, whatever the editor's theme. */
 .document {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  color-scheme: light;
 }
 
 .document .sheet {
@@ -461,7 +588,7 @@ button {
 
 .empty h2 {
   font-size: 17px;
-  color: #0f172a;
+  color: var(--text);
 }
 
 /* ------------------------------------------------------------------ modal */
@@ -473,10 +600,11 @@ button {
   display: grid;
   place-items: center;
   background: rgba(15, 23, 42, 0.45);
+  color: var(--text);
 }
 
 .modal__panel {
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   padding: 18px;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
@@ -487,6 +615,7 @@ button {
   font-size: 15px;
 }
 
+/* Stays white: the signature is drawn in black ink. */
 .modal__canvas {
   display: block;
   border: 1px dashed #cbd5e1;
@@ -516,7 +645,8 @@ button {
   padding: 8px 12px;
   border: 1px solid var(--edge);
   border-radius: 7px;
-  background: #fff;
+  background: var(--raised);
+  color: inherit;
   font-size: 13px;
   cursor: pointer;
 }
@@ -535,7 +665,9 @@ button {
     display: none !important;
   }
 
-  body {
+  html,
+  body,
+  .app {
     background: #fff;
   }
 
