@@ -74,7 +74,10 @@ button {
 
 /* ---------------------------------------------------------------- sidebar */
 
+/* Every hoverable row shares one shape and one left inset, so they line up. */
 .sidebar {
+  --item-radius: 10px;
+  --item-inset: 10px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -84,52 +87,102 @@ button {
   border-right: 1px solid var(--edge);
 }
 
-.sidebar__brand {
-  margin: 0;
-  font-size: 15px;
-  letter-spacing: 0.01em;
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px var(--item-inset) 6px;
 }
 
-.sidebar__home {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 12px;
+.sidebar__brand img {
+  display: block;
+  height: 36px;
+}
+
+.app[data-theme="dark"] .sidebar__brand img {
+  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.18));
+}
+
+/* The logo is drawn for dark backgrounds; invert it, keeping the blue, on light. */
+.app[data-theme="light"] .sidebar__brand img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.sidebar__section {
+  padding-left: 16px;
+  border-left: 1px solid var(--faint);
+  font: 500 11px/26px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: var(--muted);
-  text-decoration: none;
-}
-
-.sidebar__home:hover {
-  color: var(--accent);
 }
 
 .sidebar__new {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sidebar__new button {
-  padding: 8px 10px;
-  border: 1px solid var(--edge);
-  border-radius: 7px;
-  background: var(--raised);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--item-inset);
+  border: 0;
+  border-radius: var(--item-radius);
+  background: none;
   color: inherit;
-  cursor: pointer;
-  text-align: left;
   font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
 }
 
-.sidebar__new button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.sidebar__new:hover,
+.sidebar__new.is-active {
+  background: var(--hover);
 }
 
-.sidebar__heading {
-  margin: 4px 0 0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.sidebar__new svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+}
+
+.recents {
+  margin: 4px 0 -6px;
+}
+
+.recents__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px var(--item-inset);
+  border: 0;
+  border-radius: var(--item-radius);
+  background: none;
   color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.recents__toggle:hover {
+  background: var(--hover);
+}
+
+.recents__chevron {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+/* Expanded, the arrow shows only on hover; collapsed, it stays as the cue to reopen. */
+.recents__toggle:hover .recents__chevron,
+.recents__toggle:focus-visible .recents__chevron,
+.recents__toggle[aria-expanded="false"] .recents__chevron {
+  opacity: 1;
+}
+
+.recents__toggle[aria-expanded="false"] .recents__chevron {
+  transform: rotate(-90deg);
 }
 
 /* The list scrolls, not the sidebar, so the account menu can float past its edge. */
@@ -145,13 +198,18 @@ button {
   gap: 2px;
 }
 
+/* No text selection or link callout when a finger holds an item for its menu. */
 .doclist li {
   display: flex;
   align-items: center;
-  border-radius: 7px;
+  border-radius: var(--item-radius);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
-.doclist li:hover {
+.doclist li:hover,
+.doclist li.is-menu {
   background: var(--hover);
 }
 
@@ -164,7 +222,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding: 7px 8px;
+  padding: 7px var(--item-inset);
   border: 0;
   background: none;
   color: inherit;
@@ -181,33 +239,14 @@ button {
 }
 
 .doclist__meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: 11px;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* -------------------------------------------------------- style controls */
-
-.tag {
-  flex: none;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.tag--modern {
-  background: #0071e3;
-  color: #fff;
-}
-
-.tag--classic {
-  background: var(--edge);
-  color: var(--muted);
-}
 
 .segmented {
   display: flex;
@@ -233,21 +272,32 @@ button {
   box-shadow: 0 1px 2px var(--shadow);
 }
 
-.doclist__delete {
-  padding: 4px 8px;
-  border: 0;
-  background: none;
-  color: var(--faint);
-  cursor: pointer;
-  opacity: 0;
+.doclist__rename,
+.toolbar__rename {
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  outline: none;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
-.doclist li:hover .doclist__delete {
-  opacity: 1;
+.doclist__rename {
+  flex: 1;
+  margin: 3px;
+  font-size: 13px;
 }
 
-.doclist__delete:hover {
-  color: var(--danger);
+.toolbar__rename {
+  width: 280px;
+  /* Sits where the title text was, without growing the toolbar. */
+  margin: -6px 0 -6px -9px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .doclist__empty {
@@ -270,9 +320,9 @@ button {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 6px 8px 6px 6px;
+  padding: 6px var(--item-inset);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--item-radius);
   background: none;
   color: inherit;
   text-align: left;
@@ -344,6 +394,16 @@ button {
 
 .menu__sub {
   position: relative;
+}
+
+.menu--context {
+  position: fixed;
+  z-index: 60;
+  min-width: 180px;
+}
+
+.menu__item--danger {
+  color: var(--danger);
 }
 
 .menu--flyout {
@@ -579,16 +639,106 @@ button {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.16), 0 10px 30px rgba(15, 23, 42, 0.1);
 }
 
-.empty {
-  margin: auto;
-  max-width: 420px;
-  text-align: center;
-  color: var(--muted);
+/* --------------------------------------------------------------- gallery */
+
+.gallery {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px;
+  overflow: auto;
 }
 
-.empty h2 {
-  font-size: 17px;
-  color: var(--text);
+.preview {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 12px 32px var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.preview:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 20px 48px var(--shadow);
+}
+
+.preview__banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  padding: 0 20px;
+  border: 0;
+  border-bottom: 1px solid var(--edge);
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preview__banner:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.preview__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.preview__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.preview__title {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview__go {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.preview__go svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+.preview:hover .preview__go svg {
+  transform: translateX(3px);
+}
+
+.preview__page {
+  overflow: hidden;
+  background: #fff;
+  color-scheme: light;
+}
+
+.preview__scale {
+  width: 816px;
+  transform-origin: top left;
+  pointer-events: none;
 }
 
 /* ------------------------------------------------------------------ modal */

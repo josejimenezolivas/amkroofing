@@ -27,6 +27,9 @@ export interface FormDocument extends DocumentSummary {
   data: DocumentData;
 }
 
+/** What a save may change besides the data. */
+export type DocumentChanges = Partial<Pick<DocumentSummary, "style" | "title">>;
+
 export interface TemplateInfo {
   id: TemplateId;
   name: string;

@@ -1,6 +1,7 @@
 import type {
   Account,
   DocStyle,
+  DocumentChanges,
   DocumentData,
   DocumentSummary,
   FormDocument,
@@ -81,13 +82,13 @@ export const api = {
 
   getDocument: (id: string) => request<FormDocument>(`${API}/documents/${id}`),
 
-  createDocument: (template: TemplateId, style: DocStyle = "classic", data?: DocumentData) =>
-    request<FormDocument>(`${API}/documents`, post({ template, style, data })),
+  createDocument: (template: TemplateId, style: DocStyle, data: DocumentData, title?: string) =>
+    request<FormDocument>(`${API}/documents`, post({ template, style, data, title })),
 
-  saveDocument: (id: string, data: DocumentData, style?: DocStyle) =>
+  saveDocument: (id: string, data: DocumentData, changes: DocumentChanges = {}) =>
     request<FormDocument>(`${API}/documents/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ data, style }),
+      body: JSON.stringify({ data, ...changes }),
     }),
 
   deleteDocument: (id: string) =>

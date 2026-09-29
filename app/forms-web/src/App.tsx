@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import logo from "./assets/amk-logo-light.png";
 import { AccountMenu } from "./components/AccountMenu";
+import { DocListItem } from "./components/DocListItem";
+import { EditableTitle } from "./components/EditableTitle";
+import { TemplateGallery } from "./components/TemplateGallery";
 import { api } from "./lib/api";
 import { useDismiss } from "./lib/dismiss";
 import { DocumentProvider } from "./lib/documentStore";
@@ -8,24 +12,20 @@ import { EXPORT_FORMATS, exportDocument, type ExportFormat } from "./lib/exportD
 import type {
   Account,
   DocStyle,
+  DocumentChanges,
   DocumentData,
   DocumentSummary,
   FormDocument,
   TemplateId,
 } from "./lib/types";
 import { cx } from "./lib/cx";
-import { HOME_URL } from "./lib/home";
+import { TEMPLATE_LABELS } from "./lib/templates";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
 import { AgreementModern } from "./forms/modern/AgreementModern";
 import { InvoiceModern } from "./forms/modern/InvoiceModern";
 import { MODERN_MARGINS } from "./forms/modern/parts";
-
-const TEMPLATE_LABELS: Record<TemplateId, string> = {
-  invoice: "Roofing Job Invoice",
-  agreement: "Residential Roofing Agreement",
-};
 
 const STYLES: Array<[DocStyle, string]> = [
   ["classic", "Classic"],
@@ -42,7 +42,7 @@ type SaveState = "idle" | "saving" | "saved" | "error";
  * until it is saved, so starting a form never clutters the document list.
  */
 type Editing =
-  | { kind: "draft"; template: TemplateId; style: DocStyle }
+  | { kind: "draft"; template: TemplateId; style: DocStyle; title?: string }
   | { kind: "saved"; doc: FormDocument };
 
 const templateOf = (e: Editing) => (e.kind === "draft" ? e.template : e.doc.template);
@@ -61,6 +61,7 @@ export function App({ account, onSignOut }: AppProps) {
   const [zoom, setZoom] = useState(1);
   const [exporting, setExporting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [recentsOpen, setRecentsOpen] = useState(true);
   const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
 
   const paperRef = useRef<HTMLDivElement>(null);
@@ -143,11 +144,21 @@ export function App({ account, onSignOut }: AppProps) {
     [mayDiscardDraft, flushSave],
   );
 
+  // Back to the template previews, where a new document is picked.
+  const showGallery = useCallback(() => {
+    if (!mayDiscardDraft()) return;
+    void flushSave();
+    openId.current = null;
+    setCurrent(null);
+    setData(null);
+    setSaveState("idle");
+  }, [mayDiscardDraft, flushSave]);
+
   const save = useCallback(async () => {
     if (current?.kind !== "draft" || !data) return;
     setSaveState("saving");
     try {
-      const doc = await api.createDocument(current.template, current.style, data);
+      const doc = await api.createDocument(current.template, current.style, data, current.title);
       keep(doc.id, Promise.resolve(doc));
       openId.current = doc.id;
       setCurrent({ kind: "saved", doc });
@@ -158,21 +169,24 @@ export function App({ account, onSignOut }: AppProps) {
     }
   }, [current, data, refreshList, keep]);
 
-  // Switching style re-renders the same data through the other layout.
-  const restyle = useCallback(
-    async (style: DocStyle) => {
-      if (!current || !data || styleOf(current) === style) return;
+  // Restyling or renaming. A draft just remembers it until Save.
+  const change = useCallback(
+    async (changes: DocumentChanges) => {
+      if (!current || !data) return;
 
       if (current.kind === "draft") {
-        setCurrent({ ...current, style });
+        setCurrent({ ...current, ...changes });
         return;
       }
 
+      // This save carries the latest data, so a pending autosave is redundant.
+      window.clearTimeout(saveTimer.current);
+      pendingSave.current = null;
       const { id } = current.doc;
-      setCurrent({ kind: "saved", doc: { ...current.doc, style } });
+      setCurrent({ kind: "saved", doc: { ...current.doc, ...changes } });
       setSaveState("saving");
       try {
-        const doc = await keep(id, api.saveDocument(id, data, style));
+        const doc = await keep(id, api.saveDocument(id, data, changes));
         if (openId.current !== id) return;
         setCurrent({ kind: "saved", doc });
         setSaveState("saved");
@@ -182,6 +196,23 @@ export function App({ account, onSignOut }: AppProps) {
       }
     },
     [current, data, refreshList, keep],
+  );
+
+  // Renaming from the list. The open document goes through change() so the
+  // editor's copy stays current; any other is saved with its stored data.
+  const rename = useCallback(
+    async (id: string, title: string) => {
+      if (current?.kind === "saved" && current.doc.id === id) return change({ title });
+      setDocs((all) => all.map((d) => (d.id === id ? { ...d, title } : d)));
+      try {
+        const doc = await load(id);
+        await keep(id, api.saveDocument(id, doc.data, { title }));
+      } catch {
+        window.alert("Could not rename the document.");
+      }
+      await refreshList();
+    },
+    [current, change, load, keep, refreshList],
   );
 
   const remove = useCallback(
@@ -281,60 +312,62 @@ export function App({ account, onSignOut }: AppProps) {
   return (
     <div className="app" data-theme={theme}>
       <aside className="sidebar">
-        <div>
-          <h1 className="sidebar__brand">AMK Roofing Forms</h1>
-          <a className="sidebar__home" href={HOME_URL}>
-            amkroofing.com
+        <header className="sidebar__top">
+          <a className="sidebar__brand" href="/" aria-label="AMK Roofing home">
+            <img src={logo} alt="" />
           </a>
-        </div>
+          <span className="sidebar__section">Forms</span>
+        </header>
 
-        <h2 className="sidebar__heading">New document</h2>
+        <button
+          type="button"
+          className={cx("sidebar__new", !current && "is-active")}
+          onClick={showGallery}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6l-4 1 1-4Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          New document
+        </button>
 
-        <div className="sidebar__new">
-          <button type="button" onClick={() => void create("invoice")}>
-            Invoice
+        <h2 className="recents">
+          <button
+            type="button"
+            className="recents__toggle"
+            aria-expanded={recentsOpen}
+            onClick={() => setRecentsOpen((o) => !o)}
+          >
+            Recents
+            <svg className="recents__chevron" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
-          <button type="button" onClick={() => void create("agreement")}>
-            Agreement
-          </button>
-        </div>
-
-        <h2 className="sidebar__heading">Documents</h2>
-        <ul className="doclist">
-          {docs.map((doc) => (
-            <li
-              key={doc.id}
-              className={
-                current?.kind === "saved" && current.doc.id === doc.id ? "is-active" : undefined
-              }
-            >
-              <button
-                type="button"
-                className="doclist__open"
-                onPointerEnter={() => load(doc.id).catch(() => {})}
-                onFocus={() => load(doc.id).catch(() => {})}
-                onClick={() => void open(doc.id)}
-              >
-                <span className="doclist__title">{doc.title}</span>
-                <span className="doclist__meta">
-                  <span className={cx("tag", `tag--${doc.style}`)}>
-                    {doc.style === "modern" ? "Modern" : "Classic"}
-                  </span>
-                  {TEMPLATE_LABELS[doc.template]}
-                </span>
-              </button>
-              <button
-                type="button"
-                className="doclist__delete"
-                title="Delete"
-                onClick={() => void remove(doc.id)}
-              >
-                &times;
-              </button>
-            </li>
-          ))}
-          {docs.length === 0 && <li className="doclist__empty">No documents yet.</li>}
-        </ul>
+        </h2>
+        {recentsOpen && (
+          <ul className="doclist">
+            {docs.map((doc) => (
+              <DocListItem
+                key={doc.id}
+                doc={doc}
+                active={current?.kind === "saved" && current.doc.id === doc.id}
+                onOpen={() => void open(doc.id)}
+                onPrefetch={() => void load(doc.id).catch(() => {})}
+                onRename={(title) => void rename(doc.id, title)}
+                onDelete={() => {
+                  if (window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) void remove(doc.id);
+                }}
+              />
+            ))}
+            {docs.length === 0 && <li className="doclist__empty">No documents yet.</li>}
+          </ul>
+        )}
 
         <AccountMenu
           account={account}
@@ -349,9 +382,10 @@ export function App({ account, onSignOut }: AppProps) {
           <>
             <header className="toolbar">
               <div className="toolbar__title">
-                <strong>
-                  {current.kind === "saved" ? current.doc.title : "Untitled draft"}
-                </strong>
+                <EditableTitle
+                  value={current.kind === "saved" ? current.doc.title : (current.title ?? "Untitled draft")}
+                  onRename={(title) => void change({ title })}
+                />
                 <span className="toolbar__template">
                   {TEMPLATE_LABELS[templateOf(current)]}
                 </span>
@@ -365,7 +399,7 @@ export function App({ account, onSignOut }: AppProps) {
                     role="radio"
                     aria-checked={styleOf(current) === style}
                     className={cx(styleOf(current) === style && "is-on")}
-                    onClick={() => void restyle(style)}
+                    onClick={() => styleOf(current) !== style && void change({ style })}
                   >
                     {label}
                   </button>
@@ -445,13 +479,7 @@ export function App({ account, onSignOut }: AppProps) {
             </div>
           </>
         ) : (
-          <div className="empty">
-            <h2>Pick a document, or start a new one</h2>
-            <p>
-              Every page is a live copy of the original form. Click any text to edit it, then
-              download a print-ready PDF.
-            </p>
-          </div>
+          <TemplateGallery onStart={(template) => void create(template)} />
         )}
       </main>
     </div>

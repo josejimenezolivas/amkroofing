@@ -34,7 +34,9 @@ def update_document(document_id: str, payload: DocumentUpdate) -> Document:
     doc = storage.get_document(document_id)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
-    title = payload.title or default_title(doc.template, payload.data)
+    # A title follows the client and address until someone renames the document.
+    renamed = doc.title != default_title(doc.template, doc.data)
+    title = payload.title or (doc.title if renamed else default_title(doc.template, payload.data))
     return storage.save_document(doc, payload.data, title, payload.style)
 
 

@@ -3,7 +3,6 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import logo from "./assets/amk-logo-light.png";
 import { auth } from "./lib/api";
 import { cx } from "./lib/cx";
-import { HOME_URL } from "./lib/home";
 import { evaluatePassword } from "./lib/password";
 import type { Account } from "./lib/types";
 import "./styles/login.css";
@@ -115,7 +114,7 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
   return (
     <div className="gate">
       <header className="gate__top">
-        <a className="gate__brand" href={HOME_URL} aria-label="AMK Roofing home">
+        <a className="gate__brand" href="/" aria-label="AMK Roofing home">
           <img src={logo} alt="" />
         </a>
         <span className="gate__section">Forms</span>
@@ -241,7 +240,7 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
         )}
 
         <footer className="gate__footer">
-          Access is by invitation. <a href={HOME_URL}>amkroofing.com</a>
+          Access is by invitation. <a href="/">amkroofing.com</a>
         </footer>
       </main>
     </div>

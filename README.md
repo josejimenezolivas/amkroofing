@@ -67,7 +67,8 @@ npm run dev
 ```
 
 Open [http://localhost:5173/forms/](http://localhost:5173/forms/). Vite proxies
-`/forms/api` to port 8000.
+`/forms/api` to port 8000 and serves the marketing page at `/`, so the logo's
+home link stays local (its `/api/*` functions still 404, as under `http.server`).
 
 The API creates its tables on startup. The forms ask you to sign in: invite
 yourself into the local database and open the link it prints to choose a

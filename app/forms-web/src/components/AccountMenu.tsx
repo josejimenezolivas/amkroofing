@@ -4,6 +4,7 @@ import { cx } from "../lib/cx";
 import { useDismiss } from "../lib/dismiss";
 import type { ThemeChoice } from "../lib/theme";
 import type { Account } from "../lib/types";
+import { Icon } from "./Icon";
 
 const THEMES: Array<[ThemeChoice, string]> = [
   ["system", "System"],
@@ -106,12 +107,6 @@ export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuP
     </div>
   );
 }
-
-const Icon = ({ className, d }: { className?: string; d: string }) => (
-  <svg className={cx("icon", className)} viewBox="0 0 24 24" aria-hidden="true">
-    <path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
 const ThemeIcon = () => (
   <Icon d="M12 20a8 8 0 1 0 0-16m0 16a8 8 0 1 1 0-16m0 16V4m0 3.5h5.5M12 12h8M12 16.5h5.5" />

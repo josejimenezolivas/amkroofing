@@ -118,6 +118,12 @@ check(
 )
 fetched = c.get(f"/forms/api/documents/{doc['id']}").json()
 check("the saved data reads back", fetched["data"]["fields"]["client_name"] == "Jane Roofer", fetched)
+check("the title follows the client until renamed", fetched["title"].startswith("Jane Roofer"), fetched["title"])
+renamed = c.put(f"/forms/api/documents/{doc['id']}", json={"data": fetched["data"], "title": "Talmadge reroof"})
+check("a document can be renamed", renamed.json()["title"] == "Talmadge reroof", renamed.text)
+fetched["data"]["fields"]["client_name"] = "Jane Q. Roofer"
+kept = c.put(f"/forms/api/documents/{doc['id']}", json={"data": fetched["data"]}).json()
+check("later saves keep the new name", kept["title"] == "Talmadge reroof", kept["title"])
 check("the list puts the latest edit first", c.get("/forms/api/documents").json()[0]["id"] == doc["id"])
 check("a document can be deleted", c.delete(f"/forms/api/documents/{doc['id']}").status_code == 204)
 check("and is gone", c.get(f"/forms/api/documents/{doc['id']}").status_code == 404)
