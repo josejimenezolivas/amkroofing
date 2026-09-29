@@ -55,6 +55,34 @@ export function App() {
   const paperRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>();
+  const pendingSave = useRef<(() => void) | null>(null);
+  /** The saved document the user last asked for; late responses for any other are dropped. */
+  const openId = useRef<string | null>(null);
+  /**
+   * Every document this tab has fetched or saved, by id. Holding the promise
+   * lets a hover and the click after it share one request, and makes a document
+   * reopened mid-save wait for the save rather than show the copy before it.
+   */
+  const loaded = useRef(new Map<string, Promise<FormDocument>>());
+
+  const keep = useCallback((id: string, doc: Promise<FormDocument>) => {
+    loaded.current.set(id, doc);
+    doc.catch(() => {
+      if (loaded.current.get(id) === doc) loaded.current.delete(id);
+    });
+    return doc;
+  }, []);
+
+  const load = useCallback(
+    (id: string) => loaded.current.get(id) ?? keep(id, api.getDocument(id)),
+    [keep],
+  );
+
+  /** Send a debounced autosave now instead of dropping it. */
+  const flushSave = useCallback(() => {
+    window.clearTimeout(saveTimer.current);
+    pendingSave.current?.();
+  }, []);
 
   // Dismiss the export menu on an outside click or Escape.
   useEffect(() => {
@@ -93,26 +121,32 @@ export function App() {
   const open = useCallback(
     async (id: string) => {
       if (!mayDiscardDraft()) return;
-      window.clearTimeout(saveTimer.current);
-      const doc = await api.getDocument(id);
+      flushSave();
+      openId.current = id;
+      let doc = await load(id);
+      // Changed since this tab fetched it, e.g. from another device.
+      const listed = docs.find((d) => d.id === id);
+      if (listed && listed.updated_at > doc.updated_at) doc = await keep(id, api.getDocument(id));
+      if (openId.current !== id) return;
       setCurrent({ kind: "saved", doc });
       setData(doc.data);
       setSaveState("idle");
     },
-    [mayDiscardDraft],
+    [mayDiscardDraft, flushSave, load, keep, docs],
   );
 
   // Starting a form only opens a draft; nothing is stored until Save.
   const create = useCallback(
     async (template: TemplateId) => {
       if (!mayDiscardDraft()) return;
-      window.clearTimeout(saveTimer.current);
+      flushSave();
+      openId.current = null;
       const { defaults } = await api.getTemplate(template);
       setCurrent({ kind: "draft", template, style: DEFAULT_STYLE });
       setData(defaults);
       setSaveState("idle");
     },
-    [mayDiscardDraft],
+    [mayDiscardDraft, flushSave],
   );
 
   const save = useCallback(async () => {
@@ -120,13 +154,15 @@ export function App() {
     setSaveState("saving");
     try {
       const doc = await api.createDocument(current.template, current.style, data);
+      keep(doc.id, Promise.resolve(doc));
+      openId.current = doc.id;
       setCurrent({ kind: "saved", doc });
       setSaveState("saved");
       await refreshList();
     } catch {
       setSaveState("error");
     }
-  }, [current, data, refreshList]);
+  }, [current, data, refreshList, keep]);
 
   // Switching style re-renders the same data through the other layout.
   const restyle = useCallback(
@@ -138,30 +174,36 @@ export function App() {
         return;
       }
 
+      const { id } = current.doc;
       setCurrent({ kind: "saved", doc: { ...current.doc, style } });
       setSaveState("saving");
       try {
-        const doc = await api.saveDocument(current.doc.id, data, style);
+        const doc = await keep(id, api.saveDocument(id, data, style));
+        if (openId.current !== id) return;
         setCurrent({ kind: "saved", doc });
         setSaveState("saved");
         void refreshList();
       } catch {
-        setSaveState("error");
+        if (openId.current === id) setSaveState("error");
       }
     },
-    [current, data, refreshList],
+    [current, data, refreshList, keep],
   );
 
   const remove = useCallback(
     async (id: string) => {
       await api.deleteDocument(id);
-      if (current?.kind === "saved" && current.doc.id === id) {
+      loaded.current.delete(id);
+      if (openId.current === id) {
+        window.clearTimeout(saveTimer.current);
+        pendingSave.current = null;
+        openId.current = null;
         setCurrent(null);
         setData(null);
       }
       await refreshList();
     },
-    [current, refreshList],
+    [refreshList],
   );
 
   // Saved documents autosave a moment after typing stops. Drafts just track
@@ -178,18 +220,24 @@ export function App() {
 
       setSaveState("saving");
       window.clearTimeout(saveTimer.current);
-      saveTimer.current = window.setTimeout(async () => {
+      const { id, title } = current.doc;
+      const persist = async () => {
+        pendingSave.current = null;
         try {
-          const doc = await api.saveDocument(current.doc.id, next);
+          const doc = await keep(id, api.saveDocument(id, next));
+          void refreshList();
+          if (openId.current !== id) return;
           setCurrent({ kind: "saved", doc });
           setSaveState("saved");
-          void refreshList();
         } catch {
-          setSaveState("error");
+          if (openId.current === id) setSaveState("error");
+          else window.alert(`Your last changes to "${title}" could not be saved.`);
         }
-      }, 600);
+      };
+      pendingSave.current = () => void persist();
+      saveTimer.current = window.setTimeout(persist, 600);
     },
-    [current, refreshList],
+    [current, refreshList, keep],
   );
 
   const handleExport = useCallback(
@@ -260,7 +308,13 @@ export function App() {
                 current?.kind === "saved" && current.doc.id === doc.id ? "is-active" : undefined
               }
             >
-              <button type="button" className="doclist__open" onClick={() => void open(doc.id)}>
+              <button
+                type="button"
+                className="doclist__open"
+                onPointerEnter={() => load(doc.id).catch(() => {})}
+                onFocus={() => load(doc.id).catch(() => {})}
+                onClick={() => void open(doc.id)}
+              >
                 <span className="doclist__title">{doc.title}</span>
                 <span className="doclist__meta">
                   <span className={cx("tag", `tag--${doc.style}`)}>
