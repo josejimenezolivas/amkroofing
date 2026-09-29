@@ -46,7 +46,7 @@ export function InvoiceForm() {
           Invoice #: <Field name="invoice_number" placeholder="0000-0000" />
         </div>
         <div>
-          Date <Field name="invoice_date" placeholder="Month, Year" />
+          Date: <Field name="invoice_date" placeholder="Month, Year" />
         </div>
         <div>
           Job ID: <Field name="job_id" placeholder="Job ID" />
@@ -96,7 +96,6 @@ export function InvoiceForm() {
         </div>
 
         <div className="inv-sum">
-          <div className="inv-sum__stub" />
           <div className="inv-sum__head">
             <Field name="summary_heading" />
           </div>

@@ -84,7 +84,7 @@
 /* Fill-in blanks keep the fixed widths the printed form leaves for them. */
 .blank {
   display: inline-block;
-  width: 30pt;
+  min-width: 30pt;
 }
 
 /* Page 1 flows from the first scope bullet down, so extra work items push the
@@ -132,7 +132,7 @@
 }
 
 .agr__rule-flow {
-  height: 1pt;
+  height: 1px;
   background: #000;
   margin-top: 6.2pt;
 }
@@ -200,7 +200,7 @@
 }
 
 .agr-allow__divider {
-  width: 1pt;
+  width: 1px;
   background: #000;
 }
 
@@ -378,6 +378,6 @@
 
 .foot__initial-rule {
   position: absolute;
-  height: 1pt;
+  height: 1px;
   background: #000;
 }

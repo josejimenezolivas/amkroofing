@@ -42,7 +42,7 @@ THANKS_RULE = 180.05
 #: y, label, field, placeholder -- the four lines under the letterhead.
 _META = (
     (151.4, "Invoice #:", "invoice_number", "0000-0000"),
-    (163.9, "Date", "invoice_date", "Month, Year"),
+    (163.9, "Date:", "invoice_date", "Month, Year"),
     (175.4, "Job ID:", "job_id", "Job ID"),
     (186.9, "Job Location:", "job_location", "Location"),
 )
@@ -59,18 +59,14 @@ TERMS_VALUE = 402.1
 WARRANTY_TEXT = 36.0
 WARRANTY_VALUE = 149.3
 
-#: The summary box, from its ruled edges at 30.6, 168.2, 204.9 and 292.2pt.
+#: The summary box, from its ruled edges at 30.6, 204.9 and 292.2pt.
 #: It follows the scope straight on, with no gap, so it needs no coordinate.
-SUM_LABEL = 137.6
-SUM_STUB = 36.7
+SUM_LABEL = 174.3
 SUM_AMOUNT = 87.3
 SUM_HEAD = 23.55
 SUM_FIRST = 19.9
 SUM_ROW = 12.25
 SUM_LAST = 11.75
-#: The stub -- a short interior rule the original leaves behind -- divides the
-#: label column from the third item row to the last.
-STUB_FROM = 2
 #: Where the values sit inside their cells.
 SUM_INSET = 5.4
 SUM_HEAD_DROP = 6.7
@@ -199,9 +195,9 @@ def _summary(sheet: Sheet) -> None:
 
     heights = ([SUM_HEAD, SUM_FIRST] + [SUM_ROW] * (len(rows) - 1)
                + [SUM_ROW] * (len(_TOTALS) - 1) + [SUM_LAST])
-    table = sheet.table([SUM_LABEL, SUM_STUB, SUM_AMOUNT], heights)
+    table = sheet.table([SUM_LABEL, SUM_AMOUNT], heights)
 
-    head = sheet.emptied(table.cell(0, 0).merge(table.cell(0, 2)))
+    head = sheet.emptied(table.cell(0, 0).merge(table.cell(0, 1)))
     sheet.field(sheet.cell_line(head, first=True, before=SUM_HEAD_DROP,
                                 size=12, left=SUM_INSET),
                 "summary_heading", "SUMMARY", ink=Ink(bold=True, size=12))
@@ -209,22 +205,15 @@ def _summary(sheet: Sheet) -> None:
         shade(head, theme.fills["surface"])
 
     def money(row: int, drop: float):
-        return sheet.cell_line(table.cell(row, 2), first=True, before=drop,
+        return sheet.cell_line(table.cell(row, 1), first=True, before=drop,
                                left=SUM_INSET)
 
     for index in range(len(rows)):
         row = 1 + index
         drop = SUM_FIRST_DROP if index == 0 else 0
         right = rows[index].get("align") == "right"
-        # The stub only rules the lower item rows; above it the label spans.
-        label = table.cell(row, 0)
-        if index < STUB_FROM:
-            label = sheet.emptied(label.merge(table.cell(row, 1)))
-        else:
-            borders(table.cell(row, 1), "left", color=theme.line)
-
         text = sheet.cell_line(
-            label, first=True, before=drop,
+            table.cell(row, 0), first=True, before=drop,
             align="right" if right else "left",
             left=0 if right else SUM_INSET,
             right=SUM_INSET if right else 0,
@@ -234,8 +223,7 @@ def _summary(sheet: Sheet) -> None:
 
     for offset, (name, caption, align) in enumerate(_TOTALS):
         row = 1 + len(rows) + offset
-        label = sheet.emptied(table.cell(row, 0).merge(table.cell(row, 1)))
-        text = sheet.cell_line(label, first=True, align=align,
+        text = sheet.cell_line(table.cell(row, 0), first=True, align=align,
                                left=0 if align == "right" else SUM_INSET,
                                right=SUM_INSET if align == "right" else 0)
         write(text, caption, sheet.ink())

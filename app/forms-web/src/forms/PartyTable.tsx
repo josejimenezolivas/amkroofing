@@ -11,6 +11,7 @@ export function PartyTable({
   gutter,
   addressLabel,
   nameField,
+  namePlaceholder = "Client name",
   prefix,
 }: {
   /** y of the table's top rule, from the source PDF. */
@@ -18,6 +19,7 @@ export function PartyTable({
   gutter: ReactNode;
   addressLabel: string;
   nameField: string;
+  namePlaceholder?: string;
   /** Field-name prefix, e.g. "project" -> project_address, project_city ... */
   prefix: string;
 }) {
@@ -49,8 +51,8 @@ export function PartyTable({
       <div className="party__label" style={{ left: "96.2pt", top: at(2.2) }}>
         NAME
       </div>
-      <div className="party__name" style={{ left: "100.7pt", top: at(13.6) }}>
-        <Field name={nameField} placeholder="Client name" />
+      <div className="party__name" style={{ left: "96.2pt", top: at(13.6) }}>
+        <Field name={nameField} placeholder={namePlaceholder} />
       </div>
 
       <div className="party__label" style={{ left: "96.2pt", top: at(26.3) }}>

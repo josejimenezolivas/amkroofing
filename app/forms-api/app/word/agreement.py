@@ -254,6 +254,7 @@ def _details(sheet: Sheet) -> None:
                     ink=Ink(size=theme.small, bold=True)),
         ],
         name_field="buyer_name",
+        name_placeholder="Buyer name",
         address_label="ADDRESS",
         prefix="buyer",
     )

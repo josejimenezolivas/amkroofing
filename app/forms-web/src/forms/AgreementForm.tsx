@@ -78,6 +78,7 @@ function PageOne() {
         top={225}
         prefix="buyer"
         nameField="buyer_name"
+        namePlaceholder="Buyer name"
         addressLabel="ADDRESS"
         gutter={
           <>
@@ -142,7 +143,7 @@ function PageOne() {
           Also Known as Legal Description; Lot #
           <Field name="legal_lot" className="blank" placeholder="—" />
           Tract #
-          <Field name="legal_tract" className="blank" style={{ width: "32.5pt" }} placeholder="—" />
+          <Field name="legal_tract" className="blank" style={{ minWidth: "32.5pt" }} placeholder="—" />
           Block #
           <Field name="legal_block" className="blank" placeholder="—" />
         </div>
@@ -151,8 +152,8 @@ function PageOne() {
           <Field name="legal_book" className="blank" placeholder="—" />
           Page #
           <Field name="legal_page" className="blank" placeholder="—" />
-          in the office of the County Recorder of
-          <Field name="legal_recorder" className="blank" placeholder="County" />
+          in the office of the County Recorder of{" "}
+          <Field name="legal_recorder" className="blank" placeholder="County" />{" "}
           <Field name="legal_state" />
         </div>
       </div>

@@ -85,7 +85,6 @@
   width: 262.1pt;
   margin-left: -0.5pt;
   border: 1pt solid #000;
-  border-bottom: none;
   margin-top: 4pt;
   font-size: 10pt;
   --row: 13.5pt;
@@ -138,23 +137,13 @@
 }
 
 .inv-sum__divider {
-  width: 1pt;
+  width: 1px;
   background: #000;
 }
 
 .inv-sum__amount {
   flex: 1;
   padding: 0.7pt 2pt 0 4.9pt;
-}
-
-/* A short interior rule the original form leaves behind across rows 2-6. */
-.inv-sum__stub {
-  position: absolute;
-  left: 136.6pt;
-  top: calc(23.6pt + 19.8pt + var(--row) - 1pt);
-  width: 1pt;
-  height: calc(5 * var(--row));
-  background: #000;
 }
 
 .inv-sum .ed {
@@ -181,7 +170,7 @@
 
 .inv__thanks-rule {
   width: 180.1pt;
-  height: 1pt;
+  height: 1px;
   margin: 5.57pt auto 0;
   background: #000;
 }
