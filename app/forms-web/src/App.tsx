@@ -5,6 +5,7 @@ import { AccountMenu } from "./components/AccountMenu";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DocListItem } from "./components/DocListItem";
 import { EditableTitle } from "./components/EditableTitle";
+import { Icon } from "./components/Icon";
 import { TemplateGallery } from "./components/TemplateGallery";
 import { api } from "./lib/api";
 import { useDismiss } from "./lib/dismiss";
@@ -20,6 +21,7 @@ import type {
   TemplateId,
 } from "./lib/types";
 import { cx } from "./lib/cx";
+import { useSize } from "./lib/size";
 import { TEMPLATE_LABELS } from "./lib/templates";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
@@ -35,6 +37,9 @@ const STYLES: Array<[DocStyle, string]> = [
 
 /** New documents open in this layout; the toolbar switches between them. */
 const DEFAULT_STYLE: DocStyle = "classic";
+
+/** A US Letter page (612pt) in CSS pixels. */
+const PAGE_WIDTH = 816;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -64,9 +69,19 @@ export function App({ account, onSignOut }: AppProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [deleting, setDeleting] = useState<DocumentSummary | null>(null);
+  /** The sidebar, as a drawer on phones. */
+  const [navOpen, setNavOpen] = useState(false);
   const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
 
-  const paperRef = useRef<HTMLDivElement>(null);
+  const [stage, setStage] = useState<HTMLDivElement | null>(null);
+  const [paper, setPaper] = useState<HTMLDivElement | null>(null);
+  const room = useSize(stage).width;
+  const paperHeight = useSize(paper).height;
+  // Zoom is relative to the page fitting the stage, so a phone opens it whole.
+  const fit = room ? Math.min(1, room / PAGE_WIDTH) : 1;
+  const scale = fit * zoom;
+  const zoomBy = (step: number) => setZoom((z) => Math.min(2, Math.max(0.25, fit * z + step)) / fit);
+
   const exportRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>();
   const pendingSave = useRef<(() => Promise<void>) | null>(null);
@@ -278,14 +293,14 @@ export function App({ account, onSignOut }: AppProps) {
 
   const handleExport = useCallback(
     async (format: ExportFormat) => {
-      if (!paperRef.current || !current || !data) return;
+      if (!paper || !current || !data) return;
       setMenuOpen(false);
       setExporting(true);
       try {
         const style = styleOf(current);
         await exportDocument(
           {
-            root: paperRef.current,
+            root: paper,
             template: templateOf(current),
             style,
             data,
@@ -302,7 +317,21 @@ export function App({ account, onSignOut }: AppProps) {
         setExporting(false);
       }
     },
-    [current, data],
+    [paper, current, data],
+  );
+
+  // Escape closes the drawer; picking something in it does too (see the sidebar).
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNavOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
+  const navToggle = (
+    <button type="button" className="navtoggle" aria-label="Open sidebar" onClick={() => setNavOpen(true)}>
+      <Icon d="M4 7h16M4 12h16M4 17h16" />
+    </button>
   );
 
   const body = useMemo(() => {
@@ -316,7 +345,8 @@ export function App({ account, onSignOut }: AppProps) {
 
   return (
     <div className="app" data-theme={theme}>
-      <aside className="sidebar">
+      {navOpen && <div className="scrim" onClick={() => setNavOpen(false)} />}
+      <aside className={cx("sidebar", navOpen && "is-open")}>
         <header className="sidebar__top">
           <a className="sidebar__brand" href="/" aria-label="AMK Roofing home">
             <img src={logo} alt="" />
@@ -327,7 +357,10 @@ export function App({ account, onSignOut }: AppProps) {
         <button
           type="button"
           className={cx("sidebar__new", !current && "is-active")}
-          onClick={showGallery}
+          onClick={() => {
+            setNavOpen(false);
+            showGallery();
+          }}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -362,7 +395,10 @@ export function App({ account, onSignOut }: AppProps) {
                 key={doc.id}
                 doc={doc}
                 active={current?.kind === "saved" && current.doc.id === doc.id}
-                onOpen={() => void open(doc.id)}
+                onOpen={() => {
+                  setNavOpen(false);
+                  void open(doc.id);
+                }}
                 onPrefetch={() => void load(doc.id).catch(() => {})}
                 onRename={(title) => void rename(doc.id, title)}
                 onDelete={() => setDeleting(doc)}
@@ -398,6 +434,7 @@ export function App({ account, onSignOut }: AppProps) {
         {current && data ? (
           <>
             <header className="toolbar">
+              {navToggle}
               <div className="toolbar__title">
                 <EditableTitle
                   value={current.kind === "saved" ? current.doc.title : (current.title ?? "Untitled draft")}
@@ -439,11 +476,11 @@ export function App({ account, onSignOut }: AppProps) {
               )}
 
               <div className="toolbar__zoom">
-                <button type="button" onClick={() => setZoom((z) => Math.max(0.4, z - 0.1))}>
+                <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-0.1)}>
                   &minus;
                 </button>
-                <span>{Math.round(zoom * 100)}%</span>
-                <button type="button" onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>
+                <span>{Math.round(scale * 100)}%</span>
+                <button type="button" aria-label="Zoom in" onClick={() => zoomBy(0.1)}>
                   +
                 </button>
               </div>
@@ -482,21 +519,30 @@ export function App({ account, onSignOut }: AppProps) {
               </div>
             </header>
 
-            <div className="stage">
+            <div className="stage" ref={setStage}>
+              {/* Takes the scaled page's size, so the stage scrolls and centres what is seen. */}
               <div
-                className="stage__scale"
-                style={{ transform: `scale(${zoom})`, width: `${612 * zoom}pt` }}
+                className="stage__frame"
+                style={{ width: PAGE_WIDTH * scale, height: paperHeight ? paperHeight * scale : undefined }}
               >
-                <div className="document" ref={paperRef}>
-                  <DocumentProvider data={data} onChange={handleChange}>
-                    {body}
-                  </DocumentProvider>
+                <div className="stage__scale" style={{ transform: `scale(${scale})` }}>
+                  <div className="document" ref={setPaper}>
+                    <DocumentProvider data={data} onChange={handleChange}>
+                      {body}
+                    </DocumentProvider>
+                  </div>
                 </div>
               </div>
             </div>
           </>
         ) : (
-          <TemplateGallery onStart={(template) => void create(template)} />
+          <>
+            <header className="mobilebar">
+              {navToggle}
+              <span className="mobilebar__title">New document</span>
+            </header>
+            <TemplateGallery onStart={(template) => void create(template)} />
+          </>
         )}
       </main>
     </div>

@@ -62,8 +62,8 @@ export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuP
               aria-haspopup="menu"
               aria-expanded={themesOpen}
               className={cx("menu__item", themesOpen && "is-open")}
-              onPointerEnter={() => setThemesOpen(true)}
-              onClick={() => setThemesOpen((o) => !o)}
+              onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(true)}
+              onClick={() => setThemesOpen(true)}
               onKeyDown={(e) => e.key === "ArrowRight" && setThemesOpen(true)}
             >
               <ThemeIcon />
@@ -96,7 +96,7 @@ export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuP
             type="button"
             role="menuitem"
             className="menu__item"
-            onPointerEnter={() => setThemesOpen(false)}
+            onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(false)}
             onClick={onSignOut}
           >
             <SignOutIcon />

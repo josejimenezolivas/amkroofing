@@ -17,6 +17,11 @@ const PAGE = { width: 816, height: 1056 };
 /** Must match .preview__banner's height and .gallery's gap and padding. */
 const BANNER = 60;
 const GAP = 40;
+/** Smaller than this, two pages side by side are too small to read, so they stack. */
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 0.85;
+/** On a phone, how much of the next page always shows below the current one. */
+const PEEK = 72;
 
 const ignore = () => {};
 
@@ -39,9 +44,17 @@ export function TemplateGallery({ onStart }: { onStart: (template: TemplateId) =
     const stage = ref.current!;
     const fit = () => {
       // A few pixels of slack so sub-pixel rounding never wraps the row.
-      const across = (stage.clientWidth - GAP * (TEMPLATES.length + 1) - 4) / TEMPLATES.length;
-      const down = stage.clientHeight - BANNER - GAP * 2;
-      setScale(Math.min(0.85, Math.max(0.35, Math.min(across / PAGE.width, down / PAGE.height))));
+      const across = (stage.clientWidth - GAP * (TEMPLATES.length + 1) - 4) / TEMPLATES.length / PAGE.width;
+      const down = (stage.clientHeight - BANNER - GAP * 2) / PAGE.height;
+      if (across >= MIN_SCALE) {
+        setScale(Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(across, down))));
+        return;
+      }
+      // A phone: a vertical carousel, each page short enough that the next one peeks in.
+      const padding = parseFloat(getComputedStyle(stage).paddingLeft);
+      const wide = (stage.clientWidth - 2 * padding - 4) / PAGE.width;
+      const tall = (stage.clientHeight - BANNER - 2 * padding - PEEK) / PAGE.height;
+      setScale(Math.min(MAX_SCALE, wide, tall));
     };
     const observer = new ResizeObserver(fit);
     observer.observe(stage);

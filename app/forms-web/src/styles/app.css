@@ -68,6 +68,7 @@ button {
   display: grid;
   grid-template-columns: 250px 1fr;
   height: 100vh;
+  height: 100dvh;
   background: var(--canvas);
   color: var(--text);
 }
@@ -637,13 +638,17 @@ button {
   flex: 1;
   overflow: auto;
   padding: 24px;
-  display: flex;
-  justify-content: center;
+}
+
+/* Auto margins centre it until it is wider than the stage, then it scrolls
+   from its left edge (flex centring would push that edge out of reach). */
+.stage__frame {
+  margin: 0 auto;
 }
 
 .stage__scale {
-  transform-origin: top center;
-  height: fit-content;
+  width: 816px;
+  transform-origin: top left;
 }
 
 /* The paper is always paper, whatever the editor's theme. */
@@ -912,13 +917,171 @@ button {
   filter: brightness(1.08);
 }
 
+/* ---------------------------------------------------------------- phones */
+
+/* Desktop has the sidebar, so these only appear on phones. */
+.navtoggle,
+.mobilebar,
+.scrim {
+  display: none;
+}
+
+.navtoggle {
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.navtoggle:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.mobilebar {
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--edge);
+}
+
+.mobilebar__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  /* The sidebar slides in over the page as a drawer. */
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(300px, 85vw);
+    padding-top: max(18px, env(safe-area-inset-top));
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    box-shadow: 0 0 40px var(--shadow);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s 0.25s;
+  }
+
+  .sidebar.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 39;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .navtoggle {
+    display: grid;
+    margin-left: -6px;
+  }
+
+  .mobilebar {
+    display: flex;
+  }
+
+  /* Two rows: menu, title and save state; then the document controls. */
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 8px 12px 10px;
+  }
+
+  .toolbar__title {
+    flex: 1;
+  }
+
+  .toolbar::after {
+    content: "";
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .toolbar > .segmented,
+  .toolbar > .ghost,
+  .toolbar__zoom,
+  .export {
+    order: 2;
+  }
+
+  .export {
+    margin-left: auto;
+  }
+
+  .stage {
+    padding: 12px;
+  }
+
+  /* A continuous vertical carousel: pages close together, so the next one
+     always peeks in, easing to rest near a page rather than paging. */
+  .gallery {
+    display: grid;
+    /* Otherwise rows shrink to fit the screen and the cards overlap. */
+    grid-auto-rows: max-content;
+    justify-items: center;
+    align-content: start;
+    gap: 40px;
+    padding: 16px;
+    scroll-snap-type: y proximity;
+    scroll-padding: 16px;
+    overscroll-behavior-y: contain;
+  }
+
+  .preview {
+    scroll-snap-align: start;
+  }
+
+  .preview:hover {
+    transform: none;
+  }
+
+  /* The account menu opens upward, within the drawer. */
+  .account__menu {
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 8px);
+  }
+
+  .menu--flyout {
+    left: 8px;
+    right: 8px;
+    bottom: calc(100% + 12px);
+  }
+}
+
 /* Strip the editor entirely when the sheets are printed. */
 @media print {
   .sidebar,
   .toolbar,
   .export__menu,
-  .modal {
+  .modal,
+  .mobilebar,
+  .scrim {
     display: none !important;
+  }
+
+  .stage__frame {
+    width: auto !important;
+    height: auto !important;
   }
 
   html,
