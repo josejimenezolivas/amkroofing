@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from .. import storage
 from ..models import Document, DocumentCreate, DocumentSummary, DocumentUpdate
-from ..templates import TEMPLATES, default_title
+from ..templates import TEMPLATES, default_title, get_template
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -16,7 +16,7 @@ def list_documents() -> list[DocumentSummary]:
 def create_document(payload: DocumentCreate) -> Document:
     if payload.template not in TEMPLATES:
         raise HTTPException(status_code=404, detail="Unknown template")
-    data = payload.data or TEMPLATES[payload.template].defaults.model_copy(deep=True)
+    data = payload.data or get_template(payload.template).defaults
     title = payload.title or default_title(payload.template, data)
     return storage.create_document(payload.template, payload.style, title, data)
 

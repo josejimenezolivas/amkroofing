@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import word  # noqa: E402
 from app.models import WordRequest  # noqa: E402
 from app.reference import REFERENCE_AGREEMENT, REFERENCE_INVOICE  # noqa: E402
-from app.templates import TEMPLATES  # noqa: E402
+from app.templates import get_template  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / ".compare"
 SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
@@ -46,7 +46,7 @@ def to_pdf(source: Path, into: Path) -> Path:
 
 
 def preview(template: str, style: str, blank: bool) -> None:
-    data = TEMPLATES[template].defaults if blank else FILLED[template]
+    data = get_template(template).defaults if blank else FILLED[template]
     name = f"docx-{template}-{style}" + ("-blank" if blank else "")
 
     source = OUT / f"{name}.docx"

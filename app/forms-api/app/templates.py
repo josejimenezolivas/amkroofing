@@ -7,6 +7,8 @@ placeholder to fill in. Placeholders are screen-only, so a half-filled form
 still exports cleanly.
 """
 
+from datetime import date
+
 from .models import DocumentData, TemplateInfo
 
 #: AMK's own details, which head every document.
@@ -21,6 +23,14 @@ COMPANY = {
 }
 
 
+def compliance() -> str:
+    """The standing compliance line, for the calendar year a form is drawn up in."""
+    return (
+        "This form complies with professional standards in effect "
+        f"January 1-December 31, {date.today().year}"
+    )
+
+
 def _blanks(*names: str) -> dict[str, str]:
     return {name: "" for name in names}
 
@@ -29,10 +39,6 @@ INVOICE_DEFAULTS = DocumentData(
     fields={
         **COMPANY,
         "doc_title": "ROOFING JOB INVOICE",
-        "compliance": (
-            "This form complies with professional standards in effect "
-            "January 1-December 31, 2024"
-        ),
         "summary_heading": "SUMMARY",
         "warranty_prefix": "this project is covered with",
         "closing": "Thank You!",
@@ -77,10 +83,6 @@ AGREEMENT_DEFAULTS = DocumentData(
         **COMPANY,
         "doc_title_line1": "RESIDENTIAL ROOFING",
         "doc_title_line2": "AGREEMENT",
-        "compliance": (
-            "This form complies with professional standards in effect "
-            "January 1-December 31, 2024"
-        ),
         "warranty_prefix": "this project is covered with",
         "legal_state": "State of California.",
         **_blanks(
@@ -166,7 +168,11 @@ TEMPLATES: dict[str, TemplateInfo] = {
 
 
 def get_template(template_id: str) -> TemplateInfo:
-    return TEMPLATES[template_id]
+    """A template whose defaults are dated today, never the day the server started."""
+    template = TEMPLATES[template_id]
+    defaults = template.defaults.model_copy(deep=True)
+    defaults.fields["compliance"] = compliance()
+    return template.model_copy(update={"defaults": defaults})
 
 
 def default_title(template_id: str, data: DocumentData) -> str:

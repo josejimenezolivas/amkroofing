@@ -6,16 +6,13 @@ always on hand to read, copy from, or diff a render against.
 """
 
 from .models import DocumentData
-from .templates import COMPANY
+from .templates import COMPANY, compliance
 
 REFERENCE_INVOICE = DocumentData(
     fields={
         **COMPANY,
         "doc_title": "ROOFING JOB INVOICE",
-        "compliance": (
-            "This form complies with professional standards in effect "
-            "January 1-December 31, 2023"
-        ),
+        "compliance": compliance(),
         "invoice_number": "0213-245272",
         "invoice_date": "February, 2024",
         "job_id": "silvercreck",
@@ -96,10 +93,7 @@ REFERENCE_AGREEMENT = DocumentData(
         **COMPANY,
         "doc_title_line1": "RESIDENTIAL ROOFING",
         "doc_title_line2": "AGREEMENT",
-        "compliance": (
-            "This form complies with professional standards in effect "
-            "January 1-December 31, 2024"
-        ),
+        "compliance": compliance(),
         "agreement_date": "January  2024",
         "buyer_name": "Michaeal",
         "buyer_address": "3360 Ramona st",
