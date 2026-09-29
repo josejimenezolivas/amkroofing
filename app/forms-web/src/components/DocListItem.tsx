@@ -33,14 +33,17 @@ export function DocListItem({ doc, active, onOpen, onPrefetch, onRename, onDelet
       {...longPress}
     >
       {renaming ? (
-        <TitleInput
-          className="doclist__rename"
-          value={doc.title}
-          onDone={(title) => {
-            setRenaming(false);
-            if (title) onRename(title);
-          }}
-        />
+        <div className="doclist__open">
+          <TitleInput
+            className="doclist__rename"
+            value={doc.title}
+            onDone={(title) => {
+              setRenaming(false);
+              if (title) onRename(title);
+            }}
+          />
+          <span className="doclist__meta">{TEMPLATE_LABELS[doc.template]}</span>
+        </div>
       ) : (
         <button type="button" className="doclist__open" onPointerEnter={onPrefetch} onFocus={onPrefetch} onClick={onOpen}>
           <span className="doclist__title">{doc.title}</span>

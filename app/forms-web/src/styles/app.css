@@ -272,30 +272,49 @@ button {
   box-shadow: 0 1px 2px var(--shadow);
 }
 
-.doclist__rename,
-.toolbar__rename {
+/* A hidden copy of the text sizes the box, so it hugs the name as you type. The
+   negative margin cancels the padding and border, so the text doesn't move. */
+.rename {
+  display: inline-grid;
+  align-self: flex-start;
+  max-width: calc(100% + 10px);
+  margin: -1px -5px;
+}
+
+.rename::after,
+.rename input {
+  grid-area: 1 / 1;
   min-width: 0;
-  padding: 5px 8px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  outline: none;
-  background: var(--surface);
-  color: inherit;
+  padding: 0 4px;
+  border: 1px solid transparent;
   font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.rename::after {
+  content: attr(data-text) " ";
+  visibility: hidden;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.rename input {
+  width: 100%;
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 5px;
+  outline: none;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  color: inherit;
   user-select: text;
   -webkit-user-select: text;
 }
 
 .doclist__rename {
-  flex: 1;
-  margin: 3px;
   font-size: 13px;
 }
 
 .toolbar__rename {
-  width: 280px;
-  /* Sits where the title text was, without growing the toolbar. */
-  margin: -6px 0 -6px -9px;
   font-size: 14px;
   font-weight: 700;
 }
@@ -804,6 +823,93 @@ button {
 .modal__actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- confirm */
+
+.confirm {
+  width: min(400px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--menu);
+  color: var(--text);
+  box-shadow: 0 24px 64px var(--shadow);
+}
+
+.confirm[open] {
+  animation: confirm-in 160ms ease-out;
+}
+
+.confirm::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+@keyframes confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+.confirm__body {
+  padding: 22px 22px 18px;
+}
+
+.confirm__title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.confirm__message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.confirm__message strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.confirm__actions button {
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.confirm__actions button:hover,
+.confirm__actions button:focus-visible {
+  background: var(--hover);
+  outline: none;
+}
+
+.confirm__actions .confirm__danger {
+  background: var(--danger);
+  color: var(--canvas);
+}
+
+.confirm__actions .confirm__danger:hover,
+.confirm__actions .confirm__danger:focus-visible {
+  background: var(--danger);
+  filter: brightness(1.08);
 }
 
 /* Strip the editor entirely when the sheets are printed. */

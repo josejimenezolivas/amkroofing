@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import logo from "./assets/amk-logo-light.png";
 import { AccountMenu } from "./components/AccountMenu";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DocListItem } from "./components/DocListItem";
 import { EditableTitle } from "./components/EditableTitle";
 import { TemplateGallery } from "./components/TemplateGallery";
@@ -62,6 +63,7 @@ export function App({ account, onSignOut }: AppProps) {
   const [exporting, setExporting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [recentsOpen, setRecentsOpen] = useState(true);
+  const [deleting, setDeleting] = useState<DocumentSummary | null>(null);
   const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
 
   const paperRef = useRef<HTMLDivElement>(null);
@@ -154,11 +156,11 @@ export function App({ account, onSignOut }: AppProps) {
     setSaveState("idle");
   }, [mayDiscardDraft, flushSave]);
 
-  const save = useCallback(async () => {
-    if (current?.kind !== "draft" || !data) return;
+  const save = useCallback(async (draft: Editing | null = current) => {
+    if (draft?.kind !== "draft" || !data) return;
     setSaveState("saving");
     try {
-      const doc = await api.createDocument(current.template, current.style, data, current.title);
+      const doc = await api.createDocument(draft.template, draft.style, data, draft.title);
       keep(doc.id, Promise.resolve(doc));
       openId.current = doc.id;
       setCurrent({ kind: "saved", doc });
@@ -169,13 +171,16 @@ export function App({ account, onSignOut }: AppProps) {
     }
   }, [current, data, refreshList, keep]);
 
-  // Restyling or renaming. A draft just remembers it until Save.
+  // Restyling or renaming. A draft remembers a new style until Save, but naming
+  // it is a decision to keep it, so a rename saves it.
   const change = useCallback(
     async (changes: DocumentChanges) => {
       if (!current || !data) return;
 
       if (current.kind === "draft") {
-        setCurrent({ ...current, ...changes });
+        const draft = { ...current, ...changes };
+        setCurrent(draft);
+        if (changes.title) await save(draft);
         return;
       }
 
@@ -195,7 +200,7 @@ export function App({ account, onSignOut }: AppProps) {
         if (openId.current === id) setSaveState("error");
       }
     },
-    [current, data, refreshList, keep],
+    [current, data, refreshList, keep, save],
   );
 
   // Renaming from the list. The open document goes through change() so the
@@ -360,9 +365,7 @@ export function App({ account, onSignOut }: AppProps) {
                 onOpen={() => void open(doc.id)}
                 onPrefetch={() => void load(doc.id).catch(() => {})}
                 onRename={(title) => void rename(doc.id, title)}
-                onDelete={() => {
-                  if (window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) void remove(doc.id);
-                }}
+                onDelete={() => setDeleting(doc)}
               />
             ))}
             {docs.length === 0 && <li className="doclist__empty">No documents yet.</li>}
@@ -376,6 +379,20 @@ export function App({ account, onSignOut }: AppProps) {
           onSignOut={() => void signOut()}
         />
       </aside>
+
+      {deleting && (
+        <ConfirmDialog
+          title="Delete document?"
+          confirmLabel="Delete"
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => {
+            setDeleting(null);
+            void remove(deleting.id);
+          }}
+        >
+          <strong>{deleting.title}</strong> will be permanently deleted. This can’t be undone.
+        </ConfirmDialog>
+      )}
 
       <main className="main">
         {current && data ? (

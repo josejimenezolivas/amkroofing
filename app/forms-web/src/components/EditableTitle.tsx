@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+import { cx } from "../lib/cx";
 
 interface TitleInputProps {
   value: string;
@@ -7,25 +9,31 @@ interface TitleInputProps {
   onDone: (title: string | null) => void;
 }
 
-/** A title text box: Enter or leaving it saves, Escape cancels. */
+/** A title text box in place of the title: Enter or leaving it saves, Escape cancels. */
 export function TitleInput({ value, className, onDone }: TitleInputProps) {
+  const [text, setText] = useState(value);
+  const cancelled = useRef(false);
+
   return (
-    <input
-      className={className}
-      aria-label="Document title"
-      defaultValue={value}
-      maxLength={120}
-      autoFocus
-      onFocus={(e) => e.currentTarget.select()}
-      onBlur={(e) => {
-        const title = e.currentTarget.value.trim();
-        onDone(title && title !== value ? title : null);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") e.currentTarget.value = value;
-        if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
-      }}
-    />
+    <span className={cx("rename", className)} data-text={text}>
+      <input
+        aria-label="Document title"
+        value={text}
+        size={1}
+        maxLength={120}
+        autoFocus
+        onChange={(e) => setText(e.currentTarget.value)}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={() => {
+          const title = cancelled.current ? "" : text.trim();
+          onDone(title && title !== value ? title : null);
+        }}
+        onKeyDown={(e) => {
+          cancelled.current = e.key === "Escape";
+          if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
+        }}
+      />
+    </span>
   );
 }
 
