@@ -8,20 +8,29 @@
  *
  * `app/forms-api/app/pdf.py` runs the same measurement before printing,
  * because the server's fonts are not the browser's.
+ *
+ * Reset, measure, then write, in three passes: a measurement after any style
+ * write forces a fresh layout of every page, once per line otherwise.
  */
 export function fitLines(root: ParentNode = document): void {
+  const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-fit]"));
+  for (const el of lines) el.style.letterSpacing = "";
+
   const range = document.createRange();
-  for (const el of Array.from(root.querySelectorAll<HTMLElement>("[data-fit]"))) {
-    el.style.letterSpacing = "";
+  const spacing = lines.map((el) => {
     const chars = el.textContent?.length ?? 0;
     const box = el.getBoundingClientRect();
-    if (!chars || !box.width) continue;
+    if (!chars || !box.width) return "";
 
     range.selectNodeContents(el);
     const overflow = range.getBoundingClientRect().width - box.width;
-    if (overflow <= 0) continue;
+    if (overflow <= 0) return "";
 
     const scale = box.width / el.offsetWidth;
-    el.style.letterSpacing = `${-overflow / scale / chars}px`;
-  }
+    return `${-overflow / scale / chars}px`;
+  });
+
+  lines.forEach((el, i) => {
+    el.style.letterSpacing = spacing[i];
+  });
 }

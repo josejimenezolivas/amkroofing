@@ -17,16 +17,18 @@ _browser: Browser | None = None
 # Mirrors `forms-web/src/lib/fitLines.ts`. The letter-spacing the editor chose
 # was measured with the user's fonts; re-measure with the ones printing here.
 _FIT_LINES = """() => {
+  const lines = [...document.querySelectorAll("[data-fit]")];
+  for (const el of lines) el.style.letterSpacing = "";
   const range = document.createRange();
-  for (const el of document.querySelectorAll("[data-fit]")) {
-    el.style.letterSpacing = "";
+  const spacing = lines.map((el) => {
     const chars = el.textContent.length;
     const box = el.getBoundingClientRect();
-    if (!chars || !box.width) continue;
+    if (!chars || !box.width) return "";
     range.selectNodeContents(el);
     const overflow = range.getBoundingClientRect().width - box.width;
-    if (overflow > 0) el.style.letterSpacing = `${-overflow / chars}px`;
-  }
+    return overflow > 0 ? `${-overflow / chars}px` : "";
+  });
+  lines.forEach((el, i) => { el.style.letterSpacing = spacing[i]; });
 }"""
 
 
