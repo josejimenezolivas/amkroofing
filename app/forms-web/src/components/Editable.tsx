@@ -36,10 +36,13 @@ export function Editable({
 
   // Only touch the DOM when the incoming value and the rendered text actually
   // diverge, otherwise every keystroke would reset the caret to the start.
-  useLayoutEffect(() => {
+  // Never while focused: a value can arrive a beat after newer keystrokes, so
+  // the text under the caret wins until the user leaves the field.
+  const sync = () => {
     const el = ref.current;
-    if (el && readText(el) !== value) el.innerText = value;
-  }, [value]);
+    if (el && el !== document.activeElement && readText(el) !== value) el.innerText = value;
+  };
+  useLayoutEffect(sync, [value]);
 
   return (
     <span
@@ -52,6 +55,7 @@ export function Editable({
       data-empty={value.length === 0 || undefined}
       data-placeholder={placeholder}
       onInput={(e) => onChange(readText(e.currentTarget))}
+      onBlur={sync}
       onKeyDown={(e) => {
         if (!multiline && e.key === "Enter") e.preventDefault();
       }}
