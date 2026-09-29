@@ -205,6 +205,69 @@ button {
   color: var(--muted);
 }
 
+.account {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--edge);
+}
+
+.account__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e8effb;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  object-fit: cover;
+}
+
+.account__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.account__name,
+.account__email {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account__name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account__email {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.account__out {
+  flex: none;
+  padding: 5px 8px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.account__out:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ------------------------------------------------------------------- main */
 
 .main {

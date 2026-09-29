@@ -1,0 +1,22 @@
+name: amk-forms
+
+services:
+  db:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "wal_level=logical"]
+    environment:
+      POSTGRES_USER: amk
+      POSTGRES_PASSWORD: amk
+      POSTGRES_DB: amk
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "amk", "-d", "amk"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  db:

@@ -23,6 +23,16 @@ API = "http://127.0.0.1:8000"
 PORT = 4321
 
 
+class _KeepRedirects(urllib.request.HTTPRedirectHandler):
+    """Hand the sign-in redirects to the browser instead of following them here."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+_opener = urllib.request.build_opener(_KeepRedirects)
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -53,14 +63,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0") or "0")
         body = self.rfile.read(length) if length else None
         request = urllib.request.Request(API + self.path, data=body, method=self.command)
-        content_type = self.headers.get("Content-Type")
-        if content_type:
-            request.add_header("Content-Type", content_type)
-        origin = self.headers.get("Origin")
-        if origin:
-            request.add_header("Origin", origin)
+        for key in ("Content-Type", "Origin", "Cookie"):
+            value = self.headers.get(key)
+            if value:
+                request.add_header(key, value)
+        request.add_header("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
+        request.add_header("X-Forwarded-Proto", "http")
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
+            with _opener.open(request, timeout=120) as response:
                 payload = response.read()
                 self.send_response(response.status)
                 self._forward(response.headers, payload)
@@ -79,10 +89,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(payload)
 
     def _forward(self, headers, payload: bytes) -> None:
-        for key in ("Content-Type", "Content-Disposition"):
+        for key in ("Content-Type", "Content-Disposition", "Location"):
             value = headers.get(key)
             if value:
                 self.send_header(key, value)
+        for cookie in headers.get_all("Set-Cookie") or []:
+            self.send_header("Set-Cookie", cookie)
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
 

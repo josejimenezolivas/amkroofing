@@ -11,3 +11,5 @@ app/forms-api/.compare/
 
 # Local print of the engineering note. Kept on disk, not in the repo.
 docs/design/
+.vercel
+.env*

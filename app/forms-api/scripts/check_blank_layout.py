@@ -24,7 +24,7 @@ import sys
 
 from playwright.async_api import async_playwright
 
-from devapi import APP, copy_of_reference, create, scratch
+from devapi import APP, copy_of_reference, create, scratch, signed_in_page
 
 STRUCTURE = (
     ".rule, .vrule, .sheet__frame, .agr__banner, .letterhead__logo, "
@@ -90,7 +90,7 @@ async def run(template: str) -> int:
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await browser.new_page(viewport={"width": 1600, "height": 1200})
+        page = await signed_in_page(browser, viewport={"width": 1600, "height": 1200})
         await page.goto(APP, wait_until="networkidle")
 
         measured = []

@@ -30,9 +30,12 @@ This command does not serve the forms app. The forms UI is produced by a build.
 
 ## Run the site with forms
 
-You need **Python 3.11+** and **Node 18+**.
+You need **Python 3.11+**, **Node 18+**, and **Docker** for the local Postgres.
 
 ```bash
+# once — Postgres from compose.yaml at the repo root, on :5432
+docker compose up -d --wait db
+
 # terminal 1 — API
 cd app/forms-api
 python3 -m venv .venv
@@ -66,6 +69,19 @@ npm run dev
 Open [http://localhost:5173/forms/](http://localhost:5173/forms/). Vite proxies
 `/forms/api` to port 8000.
 
+The API creates its tables on startup. The forms ask you to sign in: invite
+yourself into the local database and open the link it prints to choose a
+password:
+
+```bash
+cd app/forms-api
+.venv/bin/python scripts/users.py invite you@example.com
+# for the :4321 server instead: ... invite you@example.com --site http://127.0.0.1:4321
+```
+
+"Continue with Google" appears only when `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` are set for the API; see [Sign-in](#sign-in).
+
 ## Using the forms
 
 Each form has two layouts over the same data. **Classic** reproduces the
@@ -95,11 +111,81 @@ They are ordinary documents you can read, edit, or copy from. They are created
 at startup only if missing, so edits survive a restart and a deleted one comes
 back.
 
-Saved documents are JSON files in `app/forms-api/data/documents` when you run
-the API yourself. On Vercel the container disk is wiped when an instance scales
-to zero, so production needs a Blob store connected to the project
-(`BLOB_READ_WRITE_TOKEN`). The forms API has no login: anyone who can open
-`/forms` can read and edit saved documents.
+Documents, users, and sessions live in Postgres, in their own `forms` schema:
+`forms.documents`, `forms.users`, `forms.sessions`. Locally that is the
+`compose.yaml` database; in production it is Neon, via `DATABASE_URL`. The
+schema is in `app/forms-api/app/db.py` and is applied on every startup, so each
+statement is written to be safe to repeat.
+
+## Sign-in
+
+Every forms API route except `/forms/api/health` and `/forms/api/auth/*`
+requires a signed-in user, and `/forms` shows a sign-in page until there is
+one. The page itself is public; the documents behind it are not.
+
+**Access is by invitation.** There is no public sign-up. Inviting an email
+creates the user and prints a one-time link, good for 7 days:
+
+```bash
+cd app/forms-api
+.venv/bin/python scripts/users.py invite someone@example.com --site https://www.amkroofing.com
+.venv/bin/python scripts/users.py list
+.venv/bin/python scripts/users.py remove someone@example.com   # also signs them out everywhere
+```
+
+The script edits whichever database `DATABASE_URL` names, the local one by
+default. For production, copy `DATABASE_URL` from Vercel → Storage → your Neon
+database → `.env.local` and prefix the command with it. The script prints which
+host it is about to change.
+
+The invited person then signs in one of two ways:
+
+- **Email and password.** The invite link opens a "Set up your account" form
+  with a live password checklist: at least 10 characters, 3 of 4 character
+  kinds, not a common password, nothing from their name or email, no runs like
+  `aaaa` or `1234`. `app/forms-api/app/password.py` enforces the same rules the
+  page shows. Inviting someone again issues a new link, which is how a
+  forgotten password is reset.
+- **Google.** "Continue with Google" signs in any Google account whose
+  verified email has been invited, with no link needed.
+
+How it works, after Intentra's sign-in:
+
+- Passwords are hashed with Argon2id. A wrong password and an unknown email
+  get the same answer, and ten failures lock an address for 15 minutes (per
+  instance).
+- A session is an opaque random id in an `httpOnly`, `SameSite=Lax` cookie
+  scoped to `/forms`, valid 30 days. The server stores only its SHA-256 in
+  `forms.sessions`, and every request checks it with one indexed query.
+  Signing out deletes the row, and removing a user cascades to all of theirs,
+  so access ends on the next request.
+- Accepting an invite sets the password and spends the link in a single
+  `UPDATE ... WHERE invite_hash = ...`, so a link works once even if two
+  requests race.
+- Google uses the redirect flow: `/forms/api/auth/google/start` sends the
+  browser to Google's account chooser with a CSRF `state` cookie, and
+  `/forms/api/auth/google/callback` checks the state, trades the code for an
+  ID token using the client secret, checks its audience, issuer, expiry and
+  verified email, and looks the email up in the invite list.
+
+**Production setup, once:**
+
+1. Add a Neon Postgres database to the project (Storage → Create → Neon). This
+   sets `DATABASE_URL`, the pooled connection string the API uses. The tables
+   are created on the first request after the deploy.
+2. In Google Cloud Console → APIs & Services → Credentials, create an OAuth
+   client of type *Web application* with these authorized redirect URIs:
+   - `https://www.amkroofing.com/forms/api/auth/google/callback`
+   - `http://localhost:5173/forms/api/auth/google/callback` (Vite dev)
+   - `http://127.0.0.1:4321/forms/api/auth/google/callback` (combined local server)
+3. Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to the Vercel project and
+   redeploy.
+4. Invite the first people with the production `DATABASE_URL`, as above.
+
+The redirect URI is built from the browser's origin (`X-Forwarded-Host` and
+`X-Forwarded-Proto`), so it must be registered for every origin you sign in
+from. Visit `www.amkroofing.com` rather than `amkroofing.com`; the latter
+redirects there anyway.
 
 ## How exporting works
 
@@ -153,25 +239,32 @@ app/                         Vercel project root
   assets/                    logo, video, cached roof scans
   references/                the two source PDFs the forms were transcribed from
   forms-web/                 Vite + React + TypeScript, served at /forms
+    src/Gate.tsx             sign-in page or the app, depending on the session
+    src/Login.tsx            the sign-in page and the invite form
     src/App.tsx              sidebar, toolbar, draft/save flow
     src/components/          Editable, fields, LogoField, SignatureField
     src/forms/               classic layouts, pixel-matched to the originals
       legal.json             the contract's fixed wording; the server reads it too
       termsLines.ts          generated: the terms, line by line, at exact positions
       modern/                modern layouts
-    src/lib/                 API client, document store, export
+    src/lib/                 API client, document store, export, password checklist
   forms-api/                 FastAPI, routed at /forms/api
-    app/main.py              app setup, CORS, startup seeding
+    app/main.py              app setup, CORS, startup seeding, the sign-in guard
+    app/accounts.py          users, invites, Argon2id passwords, sessions
+    app/google.py            Google sign-in: redirect, code exchange, ID token checks
+    app/password.py          the password rules
+    app/routers/auth.py      /forms/api/auth/*
+    app/db.py                Postgres: connection pool and the forms schema
     app/models.py            Pydantic models for documents and render requests
     app/templates.py         blank templates: letterhead and standing text only
     app/reference.py         the two reference PDFs, transcribed
-    app/storage.py           JSON files locally, Vercel Blob when the token is set
+    app/storage.py           documents in forms.documents
     app/pdf.py               HTML -> PDF via headless Chromium
     app/terms.json           generated: the agreement's terms, line by line
     app/word/                data -> .docx
     vendor/                  copies of legal.json and the logo for the container
     schemas/                 ECMA-376 schemas, for validating the Word export
-    scripts/                 dev checks
+    scripts/                 dev checks, and users.py for invites
   scripts/build.js           marketing site + /forms into dist/
   scripts/serve.py           dist/ on :4321, proxying /forms/api to :8000
 ```
@@ -193,10 +286,17 @@ continues".
 ## Dev checks
 
 These drive the real UI in a browser. They need both servers running, and they
-clean up after themselves.
+clean up after themselves. They sign in as a local `dev-checks@amkroofing.test`
+user by writing a session into the database and delete it on exit, and they
+refuse to run against anything but a local database.
 
 ```bash
 cd app/forms-api
+
+# Sign-in, the guard, and document saves, in process with Google stubbed. Needs
+# the local Postgres but no API server: it creates a scratch database and drops
+# it afterwards. Needs httpx: .venv/bin/pip install httpx
+.venv/bin/python scripts/check_auth.py
 
 # Render both forms and diff them against references/ as overlay images.
 .venv/bin/python scripts/compare_to_reference.py
@@ -252,7 +352,8 @@ nothing but the satellite-engine flag.
 | `SERVICE_AREA_BBOX` | no | `36.5,-123.6,38.9,-120.9` | `minLat,minLon,maxLat,maxLon`. Requests outside are rejected before they cost anything. |
 | `ALLOWED_ORIGINS` | no | `amkroofing.com,www.amkroofing.com` | Comma-separated hosts allowed to call `/api/*`. |
 | `RATE_MAX_HITS` / `RATE_WINDOW_MS` | no | `40` / `60000` | Per-IP request budget for the roof-scan proxy. |
-| `BLOB_READ_WRITE_TOKEN` | yes, for saved forms in production | — | Private blob store for documents. Set by connecting a Vercel Blob store. |
+| `DATABASE_URL` | yes, for the forms in production | local `compose.yaml` Postgres | Postgres for the forms' documents, users, and sessions. Set by adding a Neon database to the project. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | — | OAuth web client for "Continue with Google" on `/forms`. Without both, only email and password sign-in is offered. |
 
 The rate limit is in-memory, so it is per-instance and resets on cold start. It raises the
 cost of casual scripting; it is not a distributed limiter. **The hard ceiling on the bill is

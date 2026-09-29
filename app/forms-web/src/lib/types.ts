@@ -35,6 +35,13 @@ export interface TemplateInfo {
   defaults: DocumentData;
 }
 
+/** The signed-in user. */
+export interface Account {
+  email: string;
+  name: string;
+  picture: string | null;
+}
+
 export const emptyData = (): DocumentData => ({
   fields: {},
   checks: {},

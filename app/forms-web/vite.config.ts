@@ -16,6 +16,8 @@ export default defineConfig({
       "/forms/api": {
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
+        // The API builds Google's redirect URI from X-Forwarded-Host/Proto.
+        xfwd: true,
       },
     },
   },

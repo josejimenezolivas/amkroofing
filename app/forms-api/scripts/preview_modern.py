@@ -13,7 +13,7 @@ from pathlib import Path
 import pymupdf
 from playwright.async_api import async_playwright
 
-from devapi import APP, copy_of_reference, scratch
+from devapi import APP, copy_of_reference, scratch, signed_in_page
 
 OUT = Path(__file__).resolve().parents[1] / ".compare"
 
@@ -24,7 +24,7 @@ async def run(template: str) -> None:
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await browser.new_page(accept_downloads=True)
+        page = await signed_in_page(browser, accept_downloads=True)
         await page.goto(APP, wait_until="networkidle")
 
         await page.get_by_text(doc["title"], exact=False).first.click()

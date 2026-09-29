@@ -10,6 +10,7 @@
  * it; this one keeps working as a document.
  */
 
+import { send } from "./api";
 import type { DocStyle, DocumentData, TemplateId } from "./types";
 
 export type ExportFormat = "pdf" | "word";
@@ -82,13 +83,12 @@ export async function exportDocument(
 ): Promise<void> {
   const spec = EXPORT_FORMATS[format];
 
-  const res = await fetch(spec.path, {
+  const res = await send(spec.path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload(source, filename, format)),
+  }).catch((err: unknown) => {
+    throw new Error(`${spec.label} export failed: ${err instanceof Error ? err.message : err}`);
   });
-
-  if (!res.ok) throw new Error(`${spec.label} export failed: ${res.status}`);
 
   const url = URL.createObjectURL(await res.blob());
   const link = document.createElement("a");

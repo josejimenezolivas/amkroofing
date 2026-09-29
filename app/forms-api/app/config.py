@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 SERVER_ROOT = Path(__file__).resolve().parent.parent
@@ -38,7 +37,3 @@ ALLOWED_ORIGINS = [
 # US Letter in CSS points, matching the source PDFs' 612x792 media box.
 PAGE_WIDTH = "612pt"
 PAGE_HEIGHT = "792pt"
-
-_data_root = Path(os.environ["FORMS_DATA_DIR"]) if os.environ.get("FORMS_DATA_DIR") else SERVER_ROOT / "data"
-DOCUMENTS_DIR = _data_root / "documents"
-DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)

@@ -4,6 +4,7 @@ import { api } from "./lib/api";
 import { DocumentProvider } from "./lib/documentStore";
 import { EXPORT_FORMATS, exportDocument, type ExportFormat } from "./lib/exportDocument";
 import type {
+  Account,
   DocStyle,
   DocumentData,
   DocumentSummary,
@@ -43,7 +44,12 @@ type Editing =
 const templateOf = (e: Editing) => (e.kind === "draft" ? e.template : e.doc.template);
 const styleOf = (e: Editing) => (e.kind === "draft" ? e.style : e.doc.style);
 
-export function App() {
+interface AppProps {
+  account: Account;
+  onSignOut: () => Promise<void>;
+}
+
+export function App({ account, onSignOut }: AppProps) {
   const [docs, setDocs] = useState<DocumentSummary[]>([]);
   const [current, setCurrent] = useState<Editing | null>(null);
   const [data, setData] = useState<DocumentData | null>(null);
@@ -55,7 +61,7 @@ export function App() {
   const paperRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>();
-  const pendingSave = useRef<(() => void) | null>(null);
+  const pendingSave = useRef<(() => Promise<void>) | null>(null);
   /** The saved document the user last asked for; late responses for any other are dropped. */
   const openId = useRef<string | null>(null);
   /**
@@ -79,9 +85,9 @@ export function App() {
   );
 
   /** Send a debounced autosave now instead of dropping it. */
-  const flushSave = useCallback(() => {
+  const flushSave = useCallback(async () => {
     window.clearTimeout(saveTimer.current);
-    pendingSave.current?.();
+    await pendingSave.current?.();
   }, []);
 
   // Dismiss the export menu on an outside click or Escape.
@@ -121,7 +127,7 @@ export function App() {
   const open = useCallback(
     async (id: string) => {
       if (!mayDiscardDraft()) return;
-      flushSave();
+      void flushSave();
       openId.current = id;
       let doc = await load(id);
       // Changed since this tab fetched it, e.g. from another device.
@@ -139,7 +145,7 @@ export function App() {
   const create = useCallback(
     async (template: TemplateId) => {
       if (!mayDiscardDraft()) return;
-      flushSave();
+      void flushSave();
       openId.current = null;
       const { defaults } = await api.getTemplate(template);
       setCurrent({ kind: "draft", template, style: DEFAULT_STYLE });
@@ -234,11 +240,17 @@ export function App() {
           else window.alert(`Your last changes to "${title}" could not be saved.`);
         }
       };
-      pendingSave.current = () => void persist();
+      pendingSave.current = persist;
       saveTimer.current = window.setTimeout(persist, 600);
     },
     [current, refreshList, keep],
   );
+
+  const signOut = useCallback(async () => {
+    if (!mayDiscardDraft()) return;
+    await flushSave();
+    await onSignOut();
+  }, [mayDiscardDraft, flushSave, onSignOut]);
 
   const handleExport = useCallback(
     async (format: ExportFormat) => {
@@ -335,6 +347,23 @@ export function App() {
           ))}
           {docs.length === 0 && <li className="doclist__empty">No documents yet.</li>}
         </ul>
+
+        <div className="account">
+          {account.picture ? (
+            <img className="account__avatar" src={account.picture} alt="" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="account__avatar" aria-hidden="true">
+              {account.name.charAt(0).toUpperCase()}
+            </span>
+          )}
+          <span className="account__who">
+            <span className="account__name">{account.name}</span>
+            <span className="account__email">{account.email}</span>
+          </span>
+          <button type="button" className="account__out" onClick={() => void signOut()}>
+            Sign out
+          </button>
+        </div>
       </aside>
 
       <main className="main">

@@ -13,11 +13,10 @@ from pathlib import Path
 
 import numpy as np
 import pymupdf
-import requests
 from PIL import Image
 from playwright.async_api import async_playwright
 
-from devapi import API, APP, copy_of_reference, scratch
+from devapi import API, APP, copy_of_reference, http, scratch, signed_in_page
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / ".compare"
@@ -44,7 +43,7 @@ async def build_pdf(template: str) -> bytes:
 
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
-            page = await browser.new_page(viewport={"width": 1600, "height": 1200})
+            page = await signed_in_page(browser, viewport={"width": 1600, "height": 1200})
             await page.goto(APP, wait_until="networkidle")
             await page.get_by_text(doc["title"], exact=False).first.click()
             await page.wait_for_selector(".document .sheet")
@@ -53,7 +52,7 @@ async def build_pdf(template: str) -> bytes:
             await browser.close()
 
         payload["filename"] = template
-        res = requests.post(f"{API}/api/render/pdf", json=payload, timeout=120)
+        res = http.post(f"{API}/api/render/pdf", json=payload, timeout=120)
         res.raise_for_status()
         return res.content
 
