@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import logo from "./assets/amk-logo-light.png";
 import { auth } from "./lib/api";
 import { cx } from "./lib/cx";
+import { HOME_URL } from "./lib/home";
 import { evaluatePassword } from "./lib/password";
 import type { Account } from "./lib/types";
 import "./styles/login.css";
@@ -113,22 +114,21 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
 
   return (
     <div className="gate">
-      <main className="gate__card">
-        <span className="gate__edge" aria-hidden="true" />
+      <header className="gate__top">
+        <a className="gate__brand" href={HOME_URL} aria-label="AMK Roofing home">
+          <img src={logo} alt="" />
+        </a>
+        <span className="gate__section">Forms</span>
+      </header>
 
+      <main className="gate__card">
         <header className="gate__header">
-          <img className="gate__logo" src={logo} alt="AMK Roofing" />
-          <p className="gate__eyebrow">Forms</p>
           <h1>{invite ? "Set up your account" : "Sign in"}</h1>
-          <p className="gate__sub">
-            {invite ? (
-              <>
-                You were invited as <strong>{invite.email}</strong>. Choose a password to finish.
-              </>
-            ) : (
-              "Invoices and agreements for the AMK crew."
-            )}
-          </p>
+          {invite && (
+            <p className="gate__sub">
+              You were invited as <strong>{invite.email}</strong>. Choose a password to finish.
+            </p>
+          )}
         </header>
 
         {notice && !error && (
@@ -215,7 +215,8 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
           )}
 
           <button type="submit" className="gate__primary" disabled={busy}>
-            {busy ? "One moment…" : invite ? "Create account" : "Sign in with email"}
+            {busy ? "One moment…" : invite ? "Create account" : "Continue with email"}
+            {!busy && <ArrowRight />}
             {!busy && recent === "email" && !invite && <span className="gate__badge">Last used</span>}
           </button>
         </form>
@@ -240,7 +241,7 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
         )}
 
         <footer className="gate__footer">
-          Access is by invitation. <a href="/">amkroofing.com</a>
+          Access is by invitation. <a href={HOME_URL}>amkroofing.com</a>
         </footer>
       </main>
     </div>
@@ -299,6 +300,14 @@ function SecretInput(props: {
         </svg>
       </button>
     </div>
+  );
+}
+
+function ArrowRight() {
+  return (
+    <svg className="gate__arrow" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

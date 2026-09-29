@@ -12,6 +12,7 @@ import type {
   TemplateId,
 } from "./lib/types";
 import { cx } from "./lib/cx";
+import { HOME_URL } from "./lib/home";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
 import { AgreementModern } from "./forms/modern/AgreementModern";
@@ -295,7 +296,7 @@ export function App({ account, onSignOut }: AppProps) {
       <aside className="sidebar">
         <div>
           <h1 className="sidebar__brand">AMK Roofing Forms</h1>
-          <a className="sidebar__home" href="/">
+          <a className="sidebar__home" href={HOME_URL}>
             amkroofing.com
           </a>
         </div>

@@ -2,7 +2,6 @@
 
 .gate {
   --g-bg: #060a0b;
-  --g-panel: rgba(12, 19, 21, 0.94);
   --g-line: rgba(120, 200, 190, 0.16);
   --g-line-strong: rgba(120, 200, 190, 0.32);
   --g-text: #e8f0f1;
@@ -13,6 +12,7 @@
   --g-teal: #2dd4bf;
   --g-red: #f08a8a;
 
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -26,51 +26,32 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Frosted glass, edged only by light. */
 .gate__card {
   position: relative;
-  isolation: isolate;
   width: 100%;
   max-width: 400px;
-  padding: 34px 32px 26px;
-  border-radius: 18px;
-  background: var(--g-panel);
-  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.55);
+  padding: 35px 33px 27px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(22, 36, 41, 0.62), rgba(8, 13, 15, 0.78));
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 0 22px rgba(110, 231, 249, 0.05),
+    0 28px 76px rgba(0, 0, 0, 0.55);
   animation: gate-rise 0.6s cubic-bezier(0.22, 0.68, 0.28, 1) both;
 }
 
-/* A hairline border with a slow sweep of amber and teal running round it. */
-.gate__edge {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  padding: 1px;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0.6;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-.gate__edge::before {
+/* A catch of light along the top edge. */
+.gate__card::before {
   content: "";
   position: absolute;
-  inset: -80%;
-  background: conic-gradient(
-    from 110deg,
-    var(--g-amber),
-    transparent 14%,
-    var(--g-teal),
-    transparent 36%,
-    var(--g-amber-bright),
-    transparent 58%,
-    var(--g-teal),
-    transparent 80%,
-    var(--g-amber)
-  );
-  animation: gate-spin 22s linear infinite;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  pointer-events: none;
 }
 
 .gate__header {
@@ -78,19 +59,40 @@
   text-align: center;
 }
 
-.gate__logo {
+.gate__top {
+  position: absolute;
+  top: 28px;
+  left: 36px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.gate__brand img {
   display: block;
-  height: 46px;
-  margin: 0 auto 10px;
+  height: 40px;
   filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.18));
 }
 
-.gate__eyebrow {
-  margin: 0 0 16px;
-  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+.gate__section {
+  padding-left: 20px;
+  border-left: 1px solid var(--g-line-strong);
+  font: 500 12px/28px ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--g-teal);
+  color: var(--g-dim);
+}
+
+@media (max-width: 560px) {
+  .gate {
+    align-content: start;
+    gap: 28px;
+  }
+
+  .gate__top {
+    position: static;
+    justify-self: start;
+  }
 }
 
 .gate h1 {
@@ -293,15 +295,22 @@
 
 .gate__primary {
   margin-top: 4px;
-  border: 0;
-  background: linear-gradient(135deg, var(--g-amber), var(--g-amber-bright));
-  color: #1a0f00;
-  box-shadow: 0 0 22px rgba(245, 166, 35, 0.26);
+  border: 1px solid rgba(245, 166, 35, 0.4);
+  background: rgba(245, 166, 35, 0.08);
+  color: var(--g-amber-bright);
 }
 
 .gate__primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(245, 166, 35, 0.42);
+  border-color: rgba(245, 166, 35, 0.7);
+  background: rgba(245, 166, 35, 0.13);
+}
+
+.gate__arrow {
+  transition: transform 0.18s;
+}
+
+.gate__primary:hover:not(:disabled) .gate__arrow {
+  transform: translateX(3px);
 }
 
 .gate__google {
@@ -398,15 +407,8 @@
   }
 }
 
-@keyframes gate-spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .gate__card,
-  .gate__edge::before {
+  .gate__card {
     animation: none;
   }
 }
