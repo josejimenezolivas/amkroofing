@@ -39,11 +39,18 @@ docker compose up -d --wait db
 # terminal 1 — API
 cd app/forms-api
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/playwright install chromium
-env -u PLAYWRIGHT_BROWSERS_PATH .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+.venv/bin/pip install -r requirements-dev.txt
+env -u PLAYWRIGHT_BROWSERS_PATH .venv/bin/playwright install chromium
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
-# terminal 2 — site, including /forms
+# terminal 2 — PDF renderer, headless Chromium; only PDF export uses it
+cd app/forms-pdf
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+env -u PLAYWRIGHT_BROWSERS_PATH .venv/bin/playwright install chromium
+env -u PLAYWRIGHT_BROWSERS_PATH .venv/bin/uvicorn renderer.main:app --host 127.0.0.1 --port 8001
+
+# terminal 3 — site, including /forms
 cd app
 node scripts/build.js
 python3 scripts/serve.py
@@ -53,10 +60,18 @@ Open [http://127.0.0.1:4321/forms](http://127.0.0.1:4321/forms).
 `curl http://127.0.0.1:8000/forms/api/health` should return `{"status":"ok"}`.
 API docs are at <http://127.0.0.1:8000/docs>.
 
-`--reload` is optional. `env -u PLAYWRIGHT_BROWSERS_PATH` matters when that
-variable is set in the shell: Playwright then looks in a cache that does not
-hold the Chromium installed by `playwright install`. Install and run with the
-variable unset so the browser stays in the default cache.
+The API forwards PDF exports to the renderer at `PDF_SERVICE_URL`, which
+defaults to `http://127.0.0.1:8001`. Everything else works without it, and a
+PDF export fails with a 502 until it is running. On Vercel the renderer is a
+separate container with no public route, so a cold start of the API never
+waits for a browser to launch.
+
+`requirements-dev.txt` adds Playwright and PyMuPDF for the checks in
+`scripts/`; the deployed API installs only `requirements.txt`. `--reload` is
+optional. `env -u PLAYWRIGHT_BROWSERS_PATH` matters when that variable is set
+in the shell: Playwright then looks in a cache that does not hold the Chromium
+installed by `playwright install`. Install and run with the variable unset so
+the browser stays in the default cache.
 
 For UI work with hot reload, leave the API running and use the Vite server:
 
@@ -109,14 +124,15 @@ is fitted into the original's footprint.
 The list always contains *Reference — Roofing Job Invoice* and *Reference —
 Residential Roofing Agreement*: the two PDFs in `app/references/`, transcribed.
 They are ordinary documents you can read, edit, or copy from. They are created
-at startup only if missing, so edits survive a restart and a deleted one comes
-back.
+along with the schema, only if missing, so edits survive a restart and a
+deleted one comes back on the next deploy.
 
 Documents, users, and sessions live in Postgres, in their own `forms` schema:
 `forms.documents`, `forms.users`, `forms.sessions`. Locally that is the
 `compose.yaml` database; in production it is Neon, via `DATABASE_URL`. The
-schema is in `app/forms-api/app/db.py` and is applied on every startup, so each
-statement is written to be safe to repeat.
+schema is in `app/forms-api/app/db.py`. `python -m app.migrate` applies it and
+runs as the forms service's build command on every deploy; locally the API
+runs it on startup. Each statement is written to be safe to repeat.
 
 ## Sign-in
 
@@ -191,7 +207,8 @@ redirects there anyway.
 ## How exporting works
 
 **PDF is a photograph of the page.** The browser sends the document's markup
-plus every stylesheet to the server, and headless Chromium prints it. An
+plus every stylesheet to the server, and headless Chromium in
+`app/forms-pdf/` prints it. An
 export matches the screen because it is the screen. Editing affordances live
 in `@media screen`, so they are absent in print.
 
@@ -226,7 +243,7 @@ Worth knowing:
 - The modern layout is set in Calibri in the Word file. The screen uses SF Pro,
   which is not on Windows and cannot be embedded.
 
-`legal.json` and the logo belong to the React app. The container only sees
+`legal.json` and the logo belong to the React app. The deployed API only sees
 `app/forms-api/`, so copies live in `app/forms-api/vendor`.
 `node scripts/build.js` refreshes those copies and stops if they changed.
 Commit `forms-api/vendor` in the same change.
@@ -250,7 +267,8 @@ app/                         Vercel project root
       modern/                modern layouts
     src/lib/                 API client, document store, export, password checklist
   forms-api/                 FastAPI, routed at /forms/api
-    app/main.py              app setup, CORS, startup seeding, the sign-in guard
+    app/main.py              app setup, CORS, the sign-in guard
+    app/migrate.py           schema and reference documents; the deploy's build step
     app/accounts.py          users, invites, Argon2id passwords, sessions
     app/google.py            Google sign-in: redirect, code exchange, ID token checks
     app/password.py          the password rules
@@ -260,12 +278,15 @@ app/                         Vercel project root
     app/templates.py         blank templates: letterhead and standing text only
     app/reference.py         the two reference PDFs, transcribed
     app/storage.py           documents in forms.documents
-    app/pdf.py               HTML -> PDF via headless Chromium
+    app/routers/render.py    exports: Word here, PDF forwarded to forms-pdf
     app/terms.json           generated: the agreement's terms, line by line
     app/word/                data -> .docx
-    vendor/                  copies of legal.json and the logo for the container
+    vendor/                  copies of legal.json and the logo for the deployed API
     schemas/                 ECMA-376 schemas, for validating the Word export
     scripts/                 dev checks, and users.py for invites
+  forms-pdf/                 private container: HTML -> PDF via headless Chromium
+    renderer/main.py         POST /render, reachable only through the API's binding
+    renderer/pdf.py          the browser, and the print settings
   scripts/build.js           marketing site + /forms into dist/
   scripts/serve.py           dist/ on :4321, proxying /forms/api to :8000
 ```
@@ -296,7 +317,7 @@ cd app/forms-api
 
 # Sign-in, the guard, and document saves, in process with Google stubbed. Needs
 # the local Postgres but no API server: it creates a scratch database and drops
-# it afterwards. Needs httpx: .venv/bin/pip install httpx
+# it afterwards.
 .venv/bin/python scripts/check_auth.py
 
 # Render both forms and diff them against references/ as overlay images.

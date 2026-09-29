@@ -1,0 +1,6 @@
+# The checks and previews in scripts/ drive a browser and read PDFs.
+# None of this ships with the API.
+-r requirements.txt
+playwright==1.49.1
+pymupdf==1.28.2
+requests

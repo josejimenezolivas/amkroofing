@@ -1,9 +1,10 @@
+import os
 from pathlib import Path
 
 SERVER_ROOT = Path(__file__).resolve().parent.parent
 
 # The React app is the source of truth for the logo and the legal wording.
-# The Docker image cannot see that tree, so it uses the copies in vendor/.
+# The deployed service cannot see that tree, so it uses the copies in vendor/.
 # scripts/build.js refuses to build the site if those copies are stale.
 WEB_SRC = SERVER_ROOT.parent / "forms-web" / "src"
 VENDOR = SERVER_ROOT / "vendor"
@@ -33,6 +34,10 @@ ALLOWED_ORIGINS = [
     "https://amkroofing.com",
     "https://www.amkroofing.com",
 ]
+
+# The Chromium service in app/forms-pdf. On Vercel a service binding sets this;
+# locally that service runs on port 8001.
+PDF_SERVICE_URL = os.environ.get("PDF_SERVICE_URL") or "http://127.0.0.1:8001"
 
 # US Letter in CSS points, matching the source PDFs' 612x792 media box.
 PAGE_WIDTH = "612pt"

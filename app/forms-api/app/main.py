@@ -1,9 +1,10 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import db, pdf, storage
+from . import db, migrate
 from .accounts import current_user
 from .config import ALLOWED_ORIGINS
 from .routers import auth, documents, render, templates
@@ -11,13 +12,12 @@ from .routers import auth, documents, render, templates
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    db.migrate()
-    storage.seed_reference_documents()
-    await pdf.startup()
+    # Deploys migrate in the build step, so a cold start only opens a connection.
+    if not os.environ.get("VERCEL"):
+        migrate.run()
     try:
         yield
     finally:
-        await pdf.shutdown()
         db.close()
 
 

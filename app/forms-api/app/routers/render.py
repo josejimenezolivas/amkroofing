@@ -1,9 +1,11 @@
 import re
 
-from fastapi import APIRouter, Request
+import httpx
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 
-from .. import pdf, word
+from .. import word
+from ..config import PDF_SERVICE_URL
 from ..models import RenderRequest, WordRequest
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -18,12 +20,24 @@ def _safe_filename(name: str) -> str:
 
 @router.post("/pdf")
 async def render_pdf(payload: RenderRequest, request: Request) -> Response:
+    """Print the on-screen markup with headless Chromium.
+
+    Chromium lives in its own service so nothing else here waits for it to
+    start. That service has no public route; this handler, behind sign-in, is
+    the only way in.
+    """
     origin = request.headers.get("origin")
-    base_url = f"{origin}/" if origin else None
-    data = await pdf.render_pdf(payload, base_url=base_url)
+    job = {**payload.model_dump(), "base_url": f"{origin}/" if origin else None}
+    try:
+        async with httpx.AsyncClient(timeout=55) as client:
+            res = await client.post(f"{PDF_SERVICE_URL.rstrip('/')}/render", json=job)
+        res.raise_for_status()
+    except httpx.HTTPError as err:
+        raise HTTPException(status_code=502, detail="The PDF could not be made. Try again.") from err
+
     filename = f"{_safe_filename(payload.filename)}.pdf"
     return Response(
-        content=data,
+        content=res.content,
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

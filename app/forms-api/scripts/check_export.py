@@ -18,7 +18,7 @@ from devapi import APP, scratch, signed_in_page
 
 OUT = Path(__file__).resolve().parents[1] / ".compare"
 
-NEW_DOC = {"invoice": "Invoice", "agreement": "Agreement"}
+NEW_DOC = {"invoice": "New invoice", "agreement": "New agreement"}
 
 
 async def run(template: str) -> None:
@@ -28,7 +28,7 @@ async def run(template: str) -> None:
         browser = await p.chromium.launch()
         page = await signed_in_page(browser, accept_downloads=True)
         await page.goto(APP, wait_until="networkidle")
-        await page.get_by_role("button", name=NEW_DOC[template], exact=True).click()
+        await page.get_by_role("button", name=NEW_DOC[template]).click()
         await page.wait_for_selector(".document .sheet, .document .msheet")
 
         for label, suffix in [("PDF document", "pdf"), ("Microsoft Word", "docx")]:

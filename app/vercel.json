@@ -16,6 +16,18 @@
     },
     "forms": {
       "root": "forms-api",
+      "runtime": "python",
+      "entrypoint": "app.main:app",
+      "buildCommand": "python -m app.migrate",
+      "functions": {
+        "app/main.py": { "maxDuration": 60 }
+      },
+      "bindings": [
+        { "type": "service", "service": "forms-pdf", "format": "url", "env": "PDF_SERVICE_URL" }
+      ]
+    },
+    "forms-pdf": {
+      "root": "forms-pdf",
       "runtime": "container",
       "entrypoint": "Dockerfile",
       "functions": {
