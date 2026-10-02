@@ -23,7 +23,7 @@ import type {
 import { cx } from "./lib/cx";
 import { useSize } from "./lib/size";
 import { TEMPLATE_LABELS } from "./lib/templates";
-import { useLargeText } from "./lib/textSize";
+import { useTextSize } from "./lib/textSize";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
@@ -75,14 +75,14 @@ export function App({ account, onSignOut }: AppProps) {
   /** The sidebar, as a drawer on phones. */
   const [navOpen, setNavOpen] = useState(false);
   const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
-  const { large: largeText, setLarge: setLargeText } = useLargeText();
+  const { choice: textSize, setChoice: setTextSize, large: largeText } = useTextSize();
 
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const [paper, setPaper] = useState<HTMLDivElement | null>(null);
   const room = useSize(stage).width;
   const paperHeight = useSize(paper).height;
   // Zoom is relative to the page fitting the stage, so a phone opens it whole --
-  // unless the text would then be too small to read for someone who asked for larger text.
+  // unless the text would then be too small to read for someone who uses larger text.
   const fit = room ? Math.min(1, room / PAGE_WIDTH) : 1;
   const base = largeText && fit < 1 ? LARGE_TEXT_PAGE_SCALE : fit;
   const scale = base * zoom;
@@ -176,6 +176,11 @@ export function App({ account, onSignOut }: AppProps) {
     setData(null);
     setSaveState("idle");
   }, [mayDiscardDraft, flushSave]);
+
+  const newDocument = () => {
+    setNavOpen(false);
+    showGallery();
+  };
 
   const save = useCallback(async (draft: Editing | null = current) => {
     if (draft?.kind !== "draft" || !data) return;
@@ -354,20 +359,22 @@ export function App({ account, onSignOut }: AppProps) {
       {navOpen && <div className="scrim" onClick={() => setNavOpen(false)} />}
       <aside className={cx("sidebar", navOpen && "is-open")}>
         <header className="sidebar__top">
-          <a className="sidebar__brand" href="/" aria-label="AMK Roofing home">
+          <a
+            className="sidebar__brand"
+            href={import.meta.env.BASE_URL}
+            aria-label="New document"
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+              e.preventDefault();
+              newDocument();
+            }}
+          >
             <img src={logo} alt="" />
           </a>
           <span className="sidebar__section">Forms</span>
         </header>
 
-        <button
-          type="button"
-          className={cx("sidebar__new", !current && "is-active")}
-          onClick={() => {
-            setNavOpen(false);
-            showGallery();
-          }}
-        >
+        <button type="button" className={cx("sidebar__new", !current && "is-active")} onClick={newDocument}>
           <Icon d={NEW_DOCUMENT} />
           New document
         </button>
@@ -409,8 +416,8 @@ export function App({ account, onSignOut }: AppProps) {
           account={account}
           theme={themeChoice}
           onTheme={setThemeChoice}
-          largeText={largeText}
-          onLargeText={setLargeText}
+          textSize={textSize}
+          onTextSize={setTextSize}
           onSignOut={() => void signOut()}
         />
       </aside>

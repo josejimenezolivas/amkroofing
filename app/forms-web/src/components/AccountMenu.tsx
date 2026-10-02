@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { type ReactNode, useCallback, useRef, useState } from "react";
 
 import { cx } from "../lib/cx";
 import { useDismiss } from "../lib/dismiss";
+import type { TextSize } from "../lib/textSize";
 import type { ThemeChoice } from "../lib/theme";
 import type { Account } from "../lib/types";
 import { Icon } from "./Icon";
@@ -12,24 +13,32 @@ const THEMES: Array<[ThemeChoice, string]> = [
   ["dark", "Dark"],
 ];
 
+const TEXT_SIZES: Array<[TextSize, string]> = [
+  ["system", "System"],
+  ["standard", "Standard"],
+  ["larger", "Larger"],
+];
+
+type Sub = "theme" | "text";
+
 interface AccountMenuProps {
   account: Account;
   theme: ThemeChoice;
   onTheme: (theme: ThemeChoice) => void;
-  largeText: boolean;
-  onLargeText: (large: boolean) => void;
+  textSize: TextSize;
+  onTextSize: (size: TextSize) => void;
   onSignOut: () => void;
 }
 
 /** The signed-in user; opens their settings and sign-out. */
-export function AccountMenu({ account, theme, onTheme, largeText, onLargeText, onSignOut }: AccountMenuProps) {
+export function AccountMenu({ account, theme, onTheme, textSize, onTextSize, onSignOut }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
-  const [themesOpen, setThemesOpen] = useState(false);
+  const [sub, setSub] = useState<Sub | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   const show = useCallback((next: boolean) => {
     setOpen(next);
-    setThemesOpen(false);
+    setSub(null);
   }, []);
   useDismiss(ref, open, show);
 
@@ -57,53 +66,25 @@ export function AccountMenu({ account, theme, onTheme, largeText, onLargeText, o
 
       {open && (
         <div className="menu account__menu" role="menu" aria-label="Account">
-          <div className="menu__sub">
-            <button
-              type="button"
-              role="menuitem"
-              aria-haspopup="menu"
-              aria-expanded={themesOpen}
-              className={cx("menu__item", themesOpen && "is-open")}
-              onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(true)}
-              onClick={() => setThemesOpen(true)}
-              onKeyDown={(e) => e.key === "ArrowRight" && setThemesOpen(true)}
-            >
-              <ThemeIcon />
-              Theme
-              <ChevronIcon />
-            </button>
+          <Choices
+            label="Theme"
+            icon={<ThemeIcon />}
+            options={THEMES}
+            value={theme}
+            onChange={onTheme}
+            open={sub === "theme"}
+            onOpen={(next) => setSub(next ? "theme" : null)}
+          />
 
-            {themesOpen && (
-              <div className="menu menu--flyout" role="menu" aria-label="Theme">
-                {THEMES.map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={theme === value}
-                    className="menu__item"
-                    onClick={() => onTheme(value)}
-                  >
-                    {label}
-                    {theme === value && <CheckIcon />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={largeText}
-            className="menu__item"
-            onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(false)}
-            onClick={() => onLargeText(!largeText)}
-          >
-            <TextSizeIcon />
-            Larger text
-            <span className={cx("switch", largeText && "is-on")} aria-hidden="true" />
-          </button>
+          <Choices
+            label="Text size"
+            icon={<TextSizeIcon />}
+            options={TEXT_SIZES}
+            value={textSize}
+            onChange={onTextSize}
+            open={sub === "text"}
+            onOpen={(next) => setSub(next ? "text" : null)}
+          />
 
           <hr className="menu__rule" />
 
@@ -111,12 +92,62 @@ export function AccountMenu({ account, theme, onTheme, largeText, onLargeText, o
             type="button"
             role="menuitem"
             className="menu__item"
-            onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(false)}
+            onPointerEnter={(e) => e.pointerType === "mouse" && setSub(null)}
             onClick={onSignOut}
           >
             <SignOutIcon />
             Sign out
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ChoicesProps<T extends string> {
+  label: string;
+  icon: ReactNode;
+  options: Array<[T, string]>;
+  value: T;
+  onChange: (value: T) => void;
+  open: boolean;
+  onOpen: (open: boolean) => void;
+}
+
+/** A menu item that flies out a list of options, one of them checked. */
+function Choices<T extends string>({ label, icon, options, value, onChange, open, onOpen }: ChoicesProps<T>) {
+  return (
+    <div className="menu__sub">
+      <button
+        type="button"
+        role="menuitem"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={cx("menu__item", open && "is-open")}
+        onPointerEnter={(e) => e.pointerType === "mouse" && onOpen(true)}
+        onClick={() => onOpen(true)}
+        onKeyDown={(e) => e.key === "ArrowRight" && onOpen(true)}
+      >
+        {icon}
+        {label}
+        <ChevronIcon />
+      </button>
+
+      {open && (
+        <div className="menu menu--flyout" role="menu" aria-label={label}>
+          {options.map(([option, text]) => (
+            <button
+              key={option}
+              type="button"
+              role="menuitemradio"
+              aria-checked={value === option}
+              className="menu__item"
+              onClick={() => onChange(option)}
+            >
+              {text}
+              {value === option && <CheckIcon />}
+            </button>
+          ))}
         </div>
       )}
     </div>
