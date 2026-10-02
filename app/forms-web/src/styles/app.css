@@ -400,7 +400,7 @@ button {
   min-width: 180px;
 }
 
-.menu__item--danger {
+.menu__item.menu__item--danger {
   color: var(--danger);
 }
 
