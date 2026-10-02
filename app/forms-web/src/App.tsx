@@ -249,6 +249,24 @@ export function App({ account, onSignOut }: AppProps) {
     [current, change, load, keep, refreshList],
   );
 
+  const duplicate = useCallback(
+    async (id: string) => {
+      // Copies what is on screen, not what the last autosave stored.
+      await flushSave();
+      let doc: FormDocument;
+      try {
+        doc = await api.copyDocument(id);
+      } catch {
+        window.alert("Could not copy the document.");
+        return;
+      }
+      keep(doc.id, Promise.resolve(doc));
+      await refreshList();
+      await open(doc.id);
+    },
+    [flushSave, keep, refreshList, open],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       await api.deleteDocument(id);
@@ -408,6 +426,10 @@ export function App({ account, onSignOut }: AppProps) {
                 }}
                 onPrefetch={() => void load(doc.id).catch(() => {})}
                 onRename={(title) => void rename(doc.id, title)}
+                onCopy={() => {
+                  setNavOpen(false);
+                  void duplicate(doc.id);
+                }}
                 onDelete={() => setDeleting(doc)}
               />
             ))}

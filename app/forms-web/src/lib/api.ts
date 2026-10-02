@@ -91,6 +91,8 @@ export const api = {
       body: JSON.stringify({ data, ...changes }),
     }),
 
+  copyDocument: (id: string) => request<FormDocument>(`${API}/documents/${id}/copy`, { method: "POST" }),
+
   deleteDocument: (id: string) =>
     request<void>(`${API}/documents/${id}`, { method: "DELETE" }),
 };

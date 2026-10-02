@@ -175,6 +175,26 @@ def get_template(template_id: str) -> TemplateInfo:
     return template.model_copy(update={"defaults": defaults})
 
 
+#: Filled in as the owners sign, alongside the drawn signatures.
+SIGNING_DATES = ("owner_sig_date_1", "owner_sig_date_2")
+
+
+def copy_data(data: DocumentData) -> DocumentData:
+    """A copy is a new document: unsigned, and dated this year."""
+    copy = data.model_copy(deep=True)
+    copy.signatures = {}
+    for name in SIGNING_DATES:
+        if name in copy.fields:
+            copy.fields[name] = ""
+    if "compliance" in copy.fields:
+        copy.fields["compliance"] = compliance()
+    return copy
+
+
+def copy_title(title: str) -> str:
+    return f"{title} (copy)"
+
+
 def default_title(template_id: str, data: DocumentData) -> str:
     """Name a document after its client and project address."""
     if template_id == "invoice":
