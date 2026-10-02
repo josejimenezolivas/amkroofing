@@ -149,6 +149,7 @@ export function App({ account, onSignOut }: AppProps) {
       setCurrent({ kind: "saved", doc });
       setData(doc.data);
       setSaveState("idle");
+      scrollTo(0, 0);
     },
     [mayDiscardDraft, flushSave, load, keep, docs],
   );
@@ -163,6 +164,7 @@ export function App({ account, onSignOut }: AppProps) {
       setCurrent({ kind: "draft", template, style: DEFAULT_STYLE });
       setData(defaults);
       setSaveState("idle");
+      scrollTo(0, 0);
     },
     [mayDiscardDraft, flushSave],
   );
@@ -175,6 +177,7 @@ export function App({ account, onSignOut }: AppProps) {
     setCurrent(null);
     setData(null);
     setSaveState("idle");
+    scrollTo(0, 0);
   }, [mayDiscardDraft, flushSave]);
 
   const newDocument = () => {
