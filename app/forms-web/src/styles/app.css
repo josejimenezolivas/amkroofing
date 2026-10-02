@@ -68,11 +68,13 @@ button {
   font: inherit;
 }
 
+/* Pinch zooms only the page (lib/pinchZoom.ts); the browser's own zoom would scale the whole editor. */
 .app {
   display: grid;
   grid-template-columns: 250px 1fr;
   height: 100vh;
   height: 100dvh;
+  touch-action: pan-x pan-y;
   background: var(--canvas);
   color: var(--text);
 }
@@ -500,24 +502,6 @@ button {
 
 .toolbar__save--error {
   color: var(--danger);
-}
-
-.toolbar__zoom {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: calc(12px * var(--text-scale));
-  color: var(--muted);
-}
-
-.toolbar__zoom button {
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--edge);
-  border-radius: 6px;
-  background: var(--raised);
-  color: var(--text);
-  cursor: pointer;
 }
 
 .toolbar button.primary,
@@ -951,12 +935,6 @@ button {
   height: 52px;
 }
 
-:root[data-text="large"] .toolbar__zoom button {
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-}
-
 :root[data-text="large"] .confirm__actions button {
   height: 44px;
 }
@@ -1027,7 +1005,6 @@ button {
   }
 
   .toolbar > .ghost,
-  .toolbar__zoom,
   .export {
     order: 2;
   }

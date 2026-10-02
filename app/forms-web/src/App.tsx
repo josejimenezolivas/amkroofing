@@ -23,6 +23,7 @@ import type {
 import { cx } from "./lib/cx";
 import { useSize } from "./lib/size";
 import { TEMPLATE_LABELS } from "./lib/templates";
+import { usePinchZoom } from "./lib/pinchZoom";
 import { useTextSize } from "./lib/textSize";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
@@ -35,6 +36,9 @@ const STYLE: DocStyle = "classic";
 const PAGE_WIDTH = 816;
 /** With larger text, a page too wide for the screen opens this big and scrolls sideways. */
 const LARGE_TEXT_PAGE_SCALE = 1.25;
+/** Pinching stops here; out, at the whole page across the screen or half size, whichever is smaller. */
+const MAX_SCALE = 3;
+const MIN_SCALE = 0.5;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -69,6 +73,7 @@ export function App({ account, onSignOut }: AppProps) {
   const { choice: textSize, setChoice: setTextSize, large: largeText } = useTextSize();
 
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const [paper, setPaper] = useState<HTMLDivElement | null>(null);
   const room = useSize(stage).width;
   const paperHeight = useSize(paper).height;
@@ -77,7 +82,7 @@ export function App({ account, onSignOut }: AppProps) {
   const fit = room ? Math.min(1, room / PAGE_WIDTH) : 1;
   const base = largeText && fit < 1 ? LARGE_TEXT_PAGE_SCALE : fit;
   const scale = base * zoom;
-  const zoomBy = (step: number) => setZoom((z) => Math.min(2, Math.max(0.25, base * z + step)) / base);
+  usePinchZoom(stage, frame, scale, (next) => setZoom(next / base), Math.min(fit, MIN_SCALE), MAX_SCALE);
 
   const exportRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>();
@@ -466,16 +471,6 @@ export function App({ account, onSignOut }: AppProps) {
                 </span>
               )}
 
-              <div className="toolbar__zoom">
-                <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-0.1)}>
-                  &minus;
-                </button>
-                <span>{Math.round(scale * 100)}%</span>
-                <button type="button" aria-label="Zoom in" onClick={() => zoomBy(0.1)}>
-                  +
-                </button>
-              </div>
-
               <div className="export" ref={exportRef}>
                 <button
                   type="button"
@@ -513,6 +508,7 @@ export function App({ account, onSignOut }: AppProps) {
             <div className="stage" ref={setStage}>
               {/* Takes the scaled page's size, so the stage scrolls and centres what is seen. */}
               <div
+                ref={setFrame}
                 className="stage__frame"
                 style={{ width: PAGE_WIDTH * scale, height: paperHeight ? paperHeight * scale : undefined }}
               >
