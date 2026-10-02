@@ -192,7 +192,7 @@ def copy_data(data: DocumentData) -> DocumentData:
 
 
 def copy_title(title: str) -> str:
-    return f"{title} (copy)"
+    return f"Copy of {title}"
 
 
 def default_title(template_id: str, data: DocumentData) -> str:
