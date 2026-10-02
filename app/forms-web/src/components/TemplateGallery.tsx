@@ -51,11 +51,9 @@ export function TemplateGallery({ onStart }: { onStart: (template: TemplateId) =
         return;
       }
       // A phone: a vertical carousel, each page short enough that the next one peeks in.
-      // The page scrolls there, so the gallery is as tall as its pages; measure the screen below the header.
       const padding = parseFloat(getComputedStyle(stage).paddingLeft);
-      const visible = document.documentElement.clientHeight - (stage.getBoundingClientRect().top + window.scrollY);
       const wide = (stage.clientWidth - 2 * padding - 4) / PAGE.width;
-      const tall = (visible - BANNER - 2 * padding - PEEK) / PAGE.height;
+      const tall = (stage.clientHeight - BANNER - 2 * padding - PEEK) / PAGE.height;
       setScale(Math.min(MAX_SCALE, wide, tall));
     };
     const observer = new ResizeObserver(fit);

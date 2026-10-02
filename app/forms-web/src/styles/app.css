@@ -998,29 +998,8 @@ button {
 }
 
 @media (max-width: 760px) {
-  /* The page itself scrolls, not panels inside a screen-high frame, so the
-     browser can collapse its toolbars, and Chrome on iOS, which sometimes
-     loads a page scrolled up under its address bar, can be pulled back. */
   .app {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100dvh;
-  }
-
-  .main {
-    overflow-x: clip;
-    overflow-y: visible;
-  }
-
-  .toolbar,
-  .mobilebar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  html:has(.sidebar.is-open) {
-    overflow: hidden;
   }
 
   /* The sidebar slides in over the page as a drawer. */
@@ -1088,9 +1067,7 @@ button {
     margin-left: auto;
   }
 
-  /* Scrolls sideways when zoomed in; up and down is the page's. */
   .stage {
-    overflow: auto hidden;
     padding: 12px;
   }
 
@@ -1104,13 +1081,9 @@ button {
     align-content: start;
     gap: 40px;
     padding: 16px;
-    overflow: visible;
-  }
-
-  /* Below the sticky .mobilebar (53px). */
-  html:has(.gallery) {
     scroll-snap-type: y proximity;
-    scroll-padding-top: 69px;
+    scroll-padding: 16px;
+    overscroll-behavior-y: contain;
   }
 
   .preview {
