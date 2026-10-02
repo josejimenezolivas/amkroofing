@@ -16,11 +16,13 @@ interface AccountMenuProps {
   account: Account;
   theme: ThemeChoice;
   onTheme: (theme: ThemeChoice) => void;
+  largeText: boolean;
+  onLargeText: (large: boolean) => void;
   onSignOut: () => void;
 }
 
 /** The signed-in user; opens their settings and sign-out. */
-export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuProps) {
+export function AccountMenu({ account, theme, onTheme, largeText, onLargeText, onSignOut }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -90,6 +92,19 @@ export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuP
             )}
           </div>
 
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={largeText}
+            className="menu__item"
+            onPointerEnter={(e) => e.pointerType === "mouse" && setThemesOpen(false)}
+            onClick={() => onLargeText(!largeText)}
+          >
+            <TextSizeIcon />
+            Larger text
+            <span className={cx("switch", largeText && "is-on")} aria-hidden="true" />
+          </button>
+
           <hr className="menu__rule" />
 
           <button
@@ -111,6 +126,8 @@ export function AccountMenu({ account, theme, onTheme, onSignOut }: AccountMenuP
 const ThemeIcon = () => (
   <Icon d="M12 20a8 8 0 1 0 0-16m0 16a8 8 0 1 1 0-16m0 16V4m0 3.5h5.5M12 12h8M12 16.5h5.5" />
 );
+
+const TextSizeIcon = () => <Icon d="M3 19 8.5 5h1L15 19M5 14h8M15.5 19l3-8h1l3 8M16.5 16.5h5" />;
 
 const SignOutIcon = () => <Icon d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10" />;
 

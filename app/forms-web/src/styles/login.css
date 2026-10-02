@@ -20,7 +20,7 @@
   place-items: center;
   padding: 24px;
   color: var(--g-text);
-  font-size: 14px;
+  font-size: calc(14px * var(--text-scale));
   -webkit-font-smoothing: antialiased;
 }
 
@@ -93,7 +93,7 @@
 .gate__section {
   padding-left: 20px;
   border-left: 1px solid var(--g-line-strong);
-  font: 500 12px/28px ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 500 calc(12px * var(--text-scale))/28px ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--g-dim);
@@ -113,7 +113,7 @@
 
 .gate h1 {
   margin: 0 0 6px;
-  font-size: 22px;
+  font-size: calc(22px * var(--text-scale));
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -138,7 +138,7 @@
 .gate__field label {
   display: block;
   margin-bottom: 7px;
-  font-size: 13px;
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
 }
 
@@ -172,7 +172,7 @@
 
 .gate__hint {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--g-soft);
 }
 
@@ -254,7 +254,7 @@
 
 .gate__strength-label {
   margin: 8px 0 6px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--g-soft);
 }
 
@@ -264,7 +264,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--g-dim);
 }
 
@@ -354,7 +354,7 @@
   border-radius: 999px;
   background: var(--g-teal);
   color: #04201c;
-  font-size: 10px;
+  font-size: calc(10px * var(--text-scale));
   font-weight: 700;
   letter-spacing: 0.03em;
 }
@@ -364,7 +364,7 @@
   align-items: center;
   gap: 12px;
   margin: 20px 0;
-  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 600 calc(10px * var(--text-scale))/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--g-dim);
@@ -383,7 +383,7 @@
   margin: 0 0 16px;
   padding: 10px 12px;
   border-radius: 9px;
-  font-size: 13px;
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.45;
 }
 
@@ -403,7 +403,7 @@
 .gate__footer {
   margin-top: 22px;
   text-align: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--g-dim);
 }
 

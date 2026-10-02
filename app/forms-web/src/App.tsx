@@ -23,6 +23,7 @@ import type {
 import { cx } from "./lib/cx";
 import { useSize } from "./lib/size";
 import { TEMPLATE_LABELS } from "./lib/templates";
+import { useLargeText } from "./lib/textSize";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
@@ -40,6 +41,8 @@ const DEFAULT_STYLE: DocStyle = "classic";
 
 /** A US Letter page (612pt) in CSS pixels. */
 const PAGE_WIDTH = 816;
+/** With larger text, a page too wide for the screen opens this big and scrolls sideways. */
+const LARGE_TEXT_PAGE_SCALE = 1.25;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -72,15 +75,18 @@ export function App({ account, onSignOut }: AppProps) {
   /** The sidebar, as a drawer on phones. */
   const [navOpen, setNavOpen] = useState(false);
   const { choice: themeChoice, setChoice: setThemeChoice, theme } = useTheme();
+  const { large: largeText, setLarge: setLargeText } = useLargeText();
 
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const [paper, setPaper] = useState<HTMLDivElement | null>(null);
   const room = useSize(stage).width;
   const paperHeight = useSize(paper).height;
-  // Zoom is relative to the page fitting the stage, so a phone opens it whole.
+  // Zoom is relative to the page fitting the stage, so a phone opens it whole --
+  // unless the text would then be too small to read for someone who asked for larger text.
   const fit = room ? Math.min(1, room / PAGE_WIDTH) : 1;
-  const scale = fit * zoom;
-  const zoomBy = (step: number) => setZoom((z) => Math.min(2, Math.max(0.25, fit * z + step)) / fit);
+  const base = largeText && fit < 1 ? LARGE_TEXT_PAGE_SCALE : fit;
+  const scale = base * zoom;
+  const zoomBy = (step: number) => setZoom((z) => Math.min(2, Math.max(0.25, base * z + step)) / base);
 
   const exportRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>();
@@ -403,6 +409,8 @@ export function App({ account, onSignOut }: AppProps) {
           account={account}
           theme={themeChoice}
           onTheme={setThemeChoice}
+          largeText={largeText}
+          onLargeText={setLargeText}
           onSignOut={() => void signOut()}
         />
       </aside>

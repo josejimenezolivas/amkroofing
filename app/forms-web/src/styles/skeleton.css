@@ -177,6 +177,10 @@
   margin-top: 5%;
 }
 
+:root[data-text="large"] .skel-page {
+  width: min(694px, calc((100vw - 300px - 124px) / 2), calc((100dvh - 140px) * 816 / 1056));
+}
+
 @media (max-width: 760px) {
   /* One page at a time, with the next peeking in below. */
   .skel-page {
