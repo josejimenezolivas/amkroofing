@@ -1,0 +1,191 @@
+/* Placeholders shaped like the page that is about to load, with a band of
+   light sweeping across them. They fade in after a beat, so a fast answer
+   swaps straight to the real page without a flash of grey. */
+
+.skel {
+  --skel-base: rgba(255, 255, 255, 0.05);
+  --skel-shine: rgba(255, 255, 255, 0.12);
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(100deg, var(--skel-base) 40%, var(--skel-shine) 50%, var(--skel-base) 60%) 0 0 / 300% 100%;
+  animation:
+    skel-in 0.25s 0.12s both,
+    skel-shimmer 1.6s linear infinite;
+}
+
+.app[data-theme="light"] .skel {
+  --skel-base: #e6ebf1;
+  --skel-shine: #f5f7fa;
+}
+
+@keyframes skel-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes skel-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.skel-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------- sign-in card (login.css) */
+
+.skel--title {
+  width: 96px;
+  height: 26px;
+  margin: 0 auto 6px;
+  border-radius: 7px;
+}
+
+.skel--label {
+  width: 64px;
+  height: 15px;
+  margin-bottom: 8px;
+}
+
+.skel--input {
+  height: 44px;
+  border-radius: 9px;
+}
+
+.skel--button {
+  height: 46px;
+  border-radius: 9px;
+}
+
+.skel--primary {
+  margin-top: 4px;
+}
+
+/* The real card fills in where the placeholder stood, so it fades rather than rises again. */
+.gate__card.is-settled {
+  animation: none;
+}
+
+.gate__card.is-settled > * {
+  animation: skel-in 0.3s ease both;
+}
+
+/* -------------------------------------------------------- editor (app.css) */
+
+.skel-static,
+.skel-preview {
+  cursor: progress;
+  pointer-events: none;
+}
+
+.doclist .skel-doc {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 9px var(--item-inset);
+}
+
+.skel--doc-title {
+  height: 12px;
+}
+
+.skel-doc:nth-child(1) .skel--doc-title {
+  width: 78%;
+}
+
+.skel-doc:nth-child(2) .skel--doc-title {
+  width: 62%;
+}
+
+.skel-doc:nth-child(3) .skel--doc-title {
+  width: 70%;
+}
+
+.skel-doc:nth-child(4) .skel--doc-title {
+  width: 54%;
+}
+
+.skel--doc-meta {
+  width: 36%;
+  height: 9px;
+}
+
+.skel--avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.account__who .skel + .skel,
+.preview__text .skel + .skel {
+  margin-top: 6px;
+}
+
+.skel--name {
+  width: 110px;
+  height: 12px;
+}
+
+.skel--email {
+  width: 150px;
+  height: 9px;
+}
+
+/* Sized like TemplateGallery's fit: two pages across, as tall as the stage allows. */
+.skel-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4%;
+  width: min(694px, calc((100vw - 250px - 124px) / 2), calc((100dvh - 140px) * 816 / 1056));
+  aspect-ratio: 816 / 1056;
+  padding: 9% 8%;
+  background: #fff;
+}
+
+.skel-page .skel {
+  --skel-base: #eceff3;
+  --skel-shine: #f8f9fb;
+  height: 1.2%;
+}
+
+.skel-page .skel--letterhead {
+  width: 42%;
+  height: 5%;
+  margin-bottom: 6%;
+}
+
+.skel-page .skel--line:nth-child(odd) {
+  width: 88%;
+}
+
+.skel-page .skel--line:nth-child(3n) {
+  width: 64%;
+}
+
+.skel-page .skel--line:nth-child(8) {
+  margin-top: 5%;
+}
+
+@media (max-width: 760px) {
+  /* One page at a time, with the next peeking in below. */
+  .skel-page {
+    width: min(694px, calc(100vw - 36px), calc((100dvh - 53px - 60px - 32px - 72px) * 816 / 1056));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel {
+    animation: skel-in 0.25s 0.12s both;
+  }
+}

@@ -11,6 +11,12 @@ const stored = (): ThemeChoice => {
   return value === "light" || value === "system" ? value : "dark";
 };
 
+/** The theme the editor will open in, for painting the loading screen before it mounts. */
+export function storedTheme(): Theme {
+  const choice = stored();
+  return choice === "system" ? (systemLight.matches ? "light" : "dark") : choice;
+}
+
 /** The editor's colour theme: dark unless this browser picked light or the system's. */
 export function useTheme() {
   const [choice, setChoice] = useState(stored);

@@ -5,7 +5,7 @@ import { AccountMenu } from "./components/AccountMenu";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DocListItem } from "./components/DocListItem";
 import { EditableTitle } from "./components/EditableTitle";
-import { Icon } from "./components/Icon";
+import { Icon, MENU, NEW_DOCUMENT } from "./components/Icon";
 import { TemplateGallery } from "./components/TemplateGallery";
 import { api } from "./lib/api";
 import { useDismiss } from "./lib/dismiss";
@@ -330,7 +330,7 @@ export function App({ account, onSignOut }: AppProps) {
 
   const navToggle = (
     <button type="button" className="navtoggle" aria-label="Open sidebar" onClick={() => setNavOpen(true)}>
-      <Icon d="M4 7h16M4 12h16M4 17h16" />
+      <Icon d={MENU} />
     </button>
   );
 
@@ -362,16 +362,7 @@ export function App({ account, onSignOut }: AppProps) {
             showGallery();
           }}
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6l-4 1 1-4Z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Icon d={NEW_DOCUMENT} />
           New document
         </button>
 

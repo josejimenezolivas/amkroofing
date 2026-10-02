@@ -58,10 +58,12 @@ function clearInviteFromUrl(): void {
 interface LoginProps {
   google: boolean;
   notice?: string;
+  /** Replacing the loading placeholder, which already stands where the card goes. */
+  settled?: boolean;
   onSignedIn: (account: Account) => void;
 }
 
-export function Login({ google, notice, onSignedIn }: LoginProps) {
+export function Login({ google, notice, settled, onSignedIn }: LoginProps) {
   const [opened] = useState(readUrl);
   const invite = opened.invite;
   useEffect(clearErrorFromUrl, []);
@@ -120,7 +122,7 @@ export function Login({ google, notice, onSignedIn }: LoginProps) {
         <span className="gate__section">Forms</span>
       </header>
 
-      <main className="gate__card">
+      <main className={cx("gate__card", settled && "is-settled")}>
         <header className="gate__header">
           <h1>{invite ? "Set up your account" : "Sign in"}</h1>
           {invite && (
