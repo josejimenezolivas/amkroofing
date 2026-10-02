@@ -7,8 +7,6 @@
   --raised: #f8fafc;
   --hover: #f1f5f9;
   --selected: #e8effb;
-  --well: #eef2f7;
-  --knob: #fff;
   --edge: #e2e8f0;
   --text: #0f172a;
   --muted: #64748b;
@@ -27,8 +25,6 @@
   --raised: #111a1d;
   --hover: rgba(232, 240, 241, 0.07);
   --selected: rgba(45, 212, 191, 0.12);
-  --well: #060a0b;
-  --knob: #1a2629;
   --edge: rgba(120, 200, 190, 0.14);
   --text: #e8f0f1;
   --muted: #8fa0a4;
@@ -253,32 +249,6 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* -------------------------------------------------------- style controls */
-
-.segmented {
-  display: flex;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--well);
-}
-
-.segmented button {
-  padding: 5px 12px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  font-size: calc(12px * var(--text-scale));
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.segmented button.is-on {
-  background: var(--knob);
-  color: var(--text);
-  box-shadow: 0 1px 2px var(--shadow);
 }
 
 /* A hidden copy of the text sizes the box, so it hugs the name as you type. The
@@ -1056,7 +1026,6 @@ button {
     flex-basis: 100%;
   }
 
-  .toolbar > .segmented,
   .toolbar > .ghost,
   .toolbar__zoom,
   .export {

@@ -27,17 +27,9 @@ import { useTextSize } from "./lib/textSize";
 import { useTheme } from "./lib/theme";
 import { AgreementForm } from "./forms/AgreementForm";
 import { InvoiceForm } from "./forms/InvoiceForm";
-import { AgreementModern } from "./forms/modern/AgreementModern";
-import { InvoiceModern } from "./forms/modern/InvoiceModern";
-import { MODERN_MARGINS } from "./forms/modern/parts";
 
-const STYLES: Array<[DocStyle, string]> = [
-  ["classic", "Classic"],
-  ["modern", "Modern"],
-];
-
-/** New documents open in this layout; the toolbar switches between them. */
-const DEFAULT_STYLE: DocStyle = "classic";
+/** Every document is shown, saved and exported in the classic layout, whatever style it was saved with. */
+const STYLE: DocStyle = "classic";
 
 /** A US Letter page (612pt) in CSS pixels. */
 const PAGE_WIDTH = 816;
@@ -51,11 +43,10 @@ type SaveState = "idle" | "saving" | "saved" | "error";
  * until it is saved, so starting a form never clutters the document list.
  */
 type Editing =
-  | { kind: "draft"; template: TemplateId; style: DocStyle; title?: string }
+  | { kind: "draft"; template: TemplateId; title?: string }
   | { kind: "saved"; doc: FormDocument };
 
 const templateOf = (e: Editing) => (e.kind === "draft" ? e.template : e.doc.template);
-const styleOf = (e: Editing) => (e.kind === "draft" ? e.style : e.doc.style);
 
 interface AppProps {
   account: Account;
@@ -160,7 +151,7 @@ export function App({ account, onSignOut }: AppProps) {
       void flushSave();
       openId.current = null;
       const { defaults } = await api.getTemplate(template);
-      setCurrent({ kind: "draft", template, style: DEFAULT_STYLE });
+      setCurrent({ kind: "draft", template });
       setData(defaults);
       setSaveState("idle");
     },
@@ -186,7 +177,7 @@ export function App({ account, onSignOut }: AppProps) {
     if (draft?.kind !== "draft" || !data) return;
     setSaveState("saving");
     try {
-      const doc = await api.createDocument(draft.template, draft.style, data, draft.title);
+      const doc = await api.createDocument(draft.template, STYLE, data, draft.title);
       keep(doc.id, Promise.resolve(doc));
       openId.current = doc.id;
       setCurrent({ kind: "saved", doc });
@@ -326,17 +317,8 @@ export function App({ account, onSignOut }: AppProps) {
       setMenuOpen(false);
       setExporting(true);
       try {
-        const style = styleOf(current);
         await exportDocument(
-          {
-            root: paper,
-            template: templateOf(current),
-            style,
-            data,
-            // Classic sheets paint their own margins; modern layouts flow and
-            // need the page box to supply them on every page.
-            margins: style === "modern" ? MODERN_MARGINS : undefined,
-          },
+          { root: paper, template: templateOf(current), style: STYLE, data },
           current.kind === "saved" ? current.doc.title : "Draft",
           format,
         );
@@ -365,11 +347,7 @@ export function App({ account, onSignOut }: AppProps) {
 
   const body = useMemo(() => {
     if (!current) return null;
-    const modern = styleOf(current) === "modern";
-    if (templateOf(current) === "invoice") {
-      return modern ? <InvoiceModern /> : <InvoiceForm />;
-    }
-    return modern ? <AgreementModern /> : <AgreementForm />;
+    return templateOf(current) === "invoice" ? <InvoiceForm /> : <AgreementForm />;
   }, [current]);
 
   return (
@@ -471,21 +449,6 @@ export function App({ account, onSignOut }: AppProps) {
                 <span className="toolbar__template">
                   {TEMPLATE_LABELS[templateOf(current)]}
                 </span>
-              </div>
-
-              <div className="segmented" role="radiogroup" aria-label="Design">
-                {STYLES.map(([style, label]) => (
-                  <button
-                    key={style}
-                    type="button"
-                    role="radio"
-                    aria-checked={styleOf(current) === style}
-                    className={cx(styleOf(current) === style && "is-on")}
-                    onClick={() => styleOf(current) !== style && void change({ style })}
-                  >
-                    {label}
-                  </button>
-                ))}
               </div>
 
               {current.kind === "draft" ? (
